@@ -15,6 +15,7 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated routes
 Route::middleware(['auth'])->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/logout', [AuthController::class, 'getLogout'])->name('logout');
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::post('/timein', [HomeController::class, 'timeIn'])->name('timein');
