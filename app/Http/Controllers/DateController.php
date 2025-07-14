@@ -2,46 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Dtr;
+use App\Models\Date;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
-class DtrController extends Controller
+class DateController extends Controller
 {
     public function index()
     {
-        $dtrs = Dtr::where('user_id', Auth::id())->orderBy('date', 'desc')->get();
+        $dtrs = Date::where('user_id', Auth::id())->get();
         return view('dtr.index', compact('dtrs'));
     }
 
     public function timeIn()
     {
-        $today = Carbon::today()->toDateString();
+        $dtr = auth()->user()
+            ->dates()
+            ->whereDate('time_in', now())
+            ->first();
 
-        $dtr = Dtr::firstOrCreate([
-            'user_id' => Auth::id(),
-            'date' => $today,
-        ]);
+        if (!$dtr) {
+            $dtr = auth()->user()
+                ->dates()
+                ->create([
+                    'time_in' => now()
+                ]);
 
-        if (!$dtr->time_in) {
-            $dtr->update(['time_in' => Carbon::now()->toTimeString()]);
+            return redirect()->back()->with('success', 'Time In recorded!');
         }
 
-        return redirect()->back()->with('success', 'Time In recorded!');
+        return redirect()->back()->with('error', 'Already timed in');
     }
 
     public function timeOut()
     {
-        $today = Carbon::today()->toDateString();
+        $dtr = auth()->user()
+            ->dates()
+            ->whereDate('time_in', now())
+            ->first();
 
-        $dtr = Dtr::where('user_id', Auth::id())
-                  ->where('date', $today)
-                  ->first();
-
-        if ($dtr && !$dtr->time_out) {
-            $dtr->update(['time_out' => Carbon::now()->toTimeString()]);
+        if (!$dtr) {
+            return redirect()->back()->with('error', 'Not yet timed in');
         }
+
+        $dtr->update([
+            'time_out' => now()
+        ]);
 
         return redirect()->back()->with('success', 'Time Out recorded!');
     }
