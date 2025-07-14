@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DateController;
+use App\Http\Controllers\TimeController;
 
 // Guest-only routes
 Route::middleware('guest')->group(function () {
@@ -22,3 +23,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timein', [DateController::class, 'timeIn'])->name('timein');
     Route::post('/timeout', [DateController::class, 'timeOut'])->name('timeout');
 });
+
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/timein', [TimeController::class, 'showTimeIn'])->name('timein.view');
+    Route::post('/timein', [TimeController::class, 'handleTimeIn'])->name('timein');
+
+    Route::get('/timeout', [TimeController::class, 'showTimeOut'])->name('timeout.view');
+    Route::post('/timeout', [TimeController::class, 'handleTimeOut'])->name('timeout');
+
+    Route::get('/dashboard', [TimeController::class, 'dashboard'])->name('dashboard');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+
+

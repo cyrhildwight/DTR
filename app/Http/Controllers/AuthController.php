@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+
+
+
+
    public function getLogin()
     {
         return view('auth.login');
@@ -57,6 +61,7 @@ class AuthController extends Controller
         Auth::logout();
         return redirect()->to('/login');
     }
+
 }
 
 
