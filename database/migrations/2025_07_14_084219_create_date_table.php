@@ -36,7 +36,9 @@ class DtrController extends Controller
         $today = Carbon::today()->toDateString();
 
         $dtr = Dtr::where('user_id', Auth::id())
-                  ->where('date', $today)
+        ->whereDate('date', '')
+
+                //   ->where('date', $today)
                   ->first();
 
         if ($dtr && !$dtr->time_out) {
