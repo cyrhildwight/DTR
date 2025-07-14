@@ -22,7 +22,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt(['email' => $request->username, 'password' => $request->password])) {
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             return redirect('/home');
         }
 
@@ -50,9 +50,13 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        Auth::login($user);
-
         return redirect('/login');
+    }
+
+    public function getLogout()
+    {
+        Auth::logout();
+        return redirect()->to('/login');
     }
 }
 
