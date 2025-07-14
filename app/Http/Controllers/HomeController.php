@@ -63,3 +63,4 @@ class HomeController extends Controller
         return redirect()->route('home')->with('message', 'Time Out recorded.');
     }
 }
+
