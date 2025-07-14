@@ -36,6 +36,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [TimeController::class, 'dashboard'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-
+    
 
 
