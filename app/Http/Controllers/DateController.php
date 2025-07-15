@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Date;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+date_default_timezone_set('Asia/Manila');
 
 class DateController extends Controller
 {
@@ -12,7 +13,6 @@ class DateController extends Controller
     {
         $userId = Auth::id();
 
-        // Fetch all logs for the user
         $dtrs = Date::where('user_id', $userId)->get();
         $todayLog = Date::where('user_id', $userId)
                         ->whereDate('time_in', now())
@@ -21,7 +21,6 @@ class DateController extends Controller
         $timeIn = $todayLog?->time_in ? Carbon::parse($todayLog->time_in) : null;
         $timeOut = $todayLog?->time_out ? Carbon::parse($todayLog->time_out) : null;
 
-        // Live duration if no timeout yet
         $duration = null;
         if ($timeIn && !$timeOut) {
             $duration = now()->diff($timeIn)->format('%H:%I:%S');
