@@ -14,11 +14,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-// Authenticated routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/', [DateController::class, 'index'])->name('home');
+    Route::get('/home', [DateController::class, 'index']);
+    Route::post('/timein', [DateController::class, 'timeIn'])->name('dtr.timein');
+    Route::post('/timeout', [DateController::class, 'timeOut'])->name('dtr.timeout');
     Route::get('/logout', [AuthController::class, 'getLogout'])->name('logout');
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::post('/timein', [DateController::class, 'timeIn'])->name('timein');
-    Route::post('/timeout', [DateController::class, 'timeOut'])->name('timeout');
 });
+
+
