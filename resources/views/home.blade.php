@@ -13,15 +13,29 @@
         <h1 class="text-2xl font-bold mb-6">Welcome, {{ Auth::user()->name ?? 'User' }}</h1>
 
         @if(session('error'))
-        <div class="bg-red-50 text-red-900">
+        <div class="bg-red-50 text-red-900 mb-4">
             {{ session('error') }}
         </div>
         @endif
 
         @if(session('success'))
-        <div class="bg-green-50 text-green-900">
+        <div class="bg-green-50 text-green-900 mb-4">
             {{ session('success') }}
         </div>
+        @endif
+
+        @if($timeIn)
+            <div class="mb-4 text-left text-gray-700">
+                <p><strong>Time In:</strong> {{ \Carbon\Carbon::parse($timeIn)->format('g:i A') }}</p>
+
+                @if($timeOut)
+                    <p><strong>Time Out:</strong> {{ \Carbon\Carbon::parse($timeOut)->format('g:i A') }}</p>
+                @else
+                    <p><strong>Current Time:</strong> {{ \Carbon\Carbon::parse($currentTime)->format('g:i A') }}</p>
+                @endif
+
+                <p><strong>Duration:</strong> {{ $duration }}</p>
+            </div>
         @endif
 
         <div class="space-y-4">
@@ -44,5 +58,4 @@
     </div>
 
 </body>
-
 </html>
