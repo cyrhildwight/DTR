@@ -14,13 +14,10 @@ class DateController extends Controller
 
         // Fetch all logs for the user
         $dtrs = Date::where('user_id', $userId)->get();
-
-        // Fetch today's log
         $todayLog = Date::where('user_id', $userId)
                         ->whereDate('time_in', now())
                         ->first();
 
-        // Safely parse as Carbon
         $timeIn = $todayLog?->time_in ? Carbon::parse($todayLog->time_in) : null;
         $timeOut = $todayLog?->time_out ? Carbon::parse($todayLog->time_out) : null;
 
