@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Date;
+use App\Models\TimeLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+
 date_default_timezone_set('Asia/Manila');
 
 class DateController extends Controller
@@ -14,6 +16,7 @@ class DateController extends Controller
         $userId = Auth::id();
 
         $dtrs = Date::where('user_id', $userId)->get();
+
         $todayLog = Date::where('user_id', $userId)
                         ->whereDate('time_in', now())
                         ->first();
@@ -21,12 +24,19 @@ class DateController extends Controller
         $timeIn = $todayLog?->time_in ? Carbon::parse($todayLog->time_in) : null;
         $timeOut = $todayLog?->time_out ? Carbon::parse($todayLog->time_out) : null;
 
+        $status = 'not_timed_in';
+        if ($timeIn && !$timeOut) {
+            $status = 'timed_in';
+        } elseif ($timeIn && $timeOut) {
+            $status = 'timed_out';
+        }
+
         $duration = null;
         if ($timeIn && !$timeOut) {
             $duration = now()->diff($timeIn)->format('%H:%I:%S');
         }
 
-        return view('home', compact('dtrs', 'timeIn', 'timeOut', 'duration'));
+        return view('home', compact('dtrs', 'timeIn', 'timeOut', 'status', 'duration'));
     }
 
     public function timeIn()
@@ -43,10 +53,15 @@ class DateController extends Controller
                 'time_in' => now(),
             ]);
 
-            return redirect()->back()->with('success', 'Time In recorded!');
+            TimeLog::create([
+                'user_id' => $userId,
+                'time_in' => now(),
+            ]);
+
+            return redirect()->route('home')->with('success', 'Time In recorded!');
         }
 
-        return redirect()->back()->with('error', 'You have already timed in today.');
+        return redirect()->route('home')->with('error', 'You have already timed in today.');
     }
 
     public function timeOut()
@@ -57,16 +72,25 @@ class DateController extends Controller
                    ->whereDate('time_in', now())
                    ->first();
 
-        if (!$log) {
-            return redirect()->back()->with('error', 'You need to time in first.');
+        $log2 = TimeLog::where('user_id', $userId)
+                       ->whereDate('time_in', now())
+                       ->first();
+
+        if (!$log || !$log2) {
+            return redirect()->route('home')->with('error', 'You need to time in first.');
         }
 
-        if ($log->time_out) {
-            return redirect()->back()->with('error', 'You have already timed out today.');
+        if ($log->time_out || $log2->time_out) {
+            return redirect()->route('home')->with('error', 'You already timed out today.');
         }
 
-        $log->update(['time_out' => now()]);
+        $now = now();
 
-        return redirect()->back()->with('success', 'Time Out recorded!');
+        $log->update(['time_out' => $now]);
+        $log2->update(['time_out' => $now]);
+
+        return redirect()->route('home')->with('success', 'Time Out recorded!');
     }
 }
+
+
