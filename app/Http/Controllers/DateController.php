@@ -4,49 +4,72 @@ namespace App\Http\Controllers;
 
 use App\Models\Date;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class DateController extends Controller
 {
     public function index()
     {
-        $dtrs = Date::where('user_id', Auth::id())->get();
-        return view('dtr.index', compact('dtrs'));
+        $userId = Auth::id();
+
+        // Fetch all logs for the user
+        $dtrs = Date::where('user_id', $userId)->get();
+
+        // Fetch today's log
+        $todayLog = Date::where('user_id', $userId)
+                        ->whereDate('time_in', now())
+                        ->first();
+
+        // Safely parse as Carbon
+        $timeIn = $todayLog?->time_in ? Carbon::parse($todayLog->time_in) : null;
+        $timeOut = $todayLog?->time_out ? Carbon::parse($todayLog->time_out) : null;
+
+        // Live duration if no timeout yet
+        $duration = null;
+        if ($timeIn && !$timeOut) {
+            $duration = now()->diff($timeIn)->format('%H:%I:%S');
+        }
+
+        return view('home', compact('dtrs', 'timeIn', 'timeOut', 'duration'));
     }
 
     public function timeIn()
     {
-        $dtr = auth()->user()
-            ->dates()
-            ->whereDate('time_in', now())
-            ->first();
+        $userId = Auth::id();
 
-        if (!$dtr) {
-            $dtr = auth()->user()
-                ->dates()
-                ->create([
-                    'time_in' => now()
-                ]);
+        $existing = Date::where('user_id', $userId)
+                        ->whereDate('time_in', now())
+                        ->first();
+
+        if (!$existing) {
+            Date::create([
+                'user_id' => $userId,
+                'time_in' => now(),
+            ]);
 
             return redirect()->back()->with('success', 'Time In recorded!');
         }
 
-        return redirect()->back()->with('error', 'Already timed in');
+        return redirect()->back()->with('error', 'You have already timed in today.');
     }
 
     public function timeOut()
     {
-        $dtr = auth()->user()
-            ->dates()
-            ->whereDate('time_in', now())
-            ->first();
+        $userId = Auth::id();
 
-        if (!$dtr) {
-            return redirect()->back()->with('error', 'Not yet timed in');
+        $log = Date::where('user_id', $userId)
+                   ->whereDate('time_in', now())
+                   ->first();
+
+        if (!$log) {
+            return redirect()->back()->with('error', 'You need to time in first.');
         }
 
-        $dtr->update([
-            'time_out' => now()
-        ]);
+        if ($log->time_out) {
+            return redirect()->back()->with('error', 'You have already timed out today.');
+        }
+
+        $log->update(['time_out' => now()]);
 
         return redirect()->back()->with('success', 'Time Out recorded!');
     }
