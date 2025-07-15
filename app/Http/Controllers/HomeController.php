@@ -12,23 +12,30 @@ use App\Models\TimeLog;
 class HomeController extends Controller
 {
     public function index()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-     
-        $log = TimeLog::where('user_id', $user->id)
-                      ->whereDate('created_at', now()->toDateString())
-                      ->first();
+    // Check today's log
+    $log = TimeLog::where('user_id', $user->id)
+                  ->whereDate('created_at', now()->toDateString())
+                  ->first();
 
-        $status = 'not_timed_in';
-        if ($log && $log->time_in && !$log->time_out) {
-            $status = 'timed_in';
-        } elseif ($log && $log->time_in && $log->time_out) {
-            $status = 'timed_out';
-        }
-
-        return view('home', compact('status'));
+    // Determine current status
+    $status = 'not_timed_in';
+    if ($log && $log->time_in && !$log->time_out) {
+        $status = 'timed_in';
+    } elseif ($log && $log->time_in && $log->time_out) {
+        $status = 'timed_out';
     }
+
+    // Get recent 5 logs for this user
+    $timeLogs = TimeLog::where('user_id', $user->id)
+                       ->orderBy('created_at', 'desc')
+                       ->take(5)
+                       ->get();
+
+    return view('home', compact('status', 'timeLogs'));
+}
 
     public function timeIn()
     {
@@ -62,4 +69,6 @@ class HomeController extends Controller
 
         return redirect()->route('home')->with('message', 'Time Out recorded.');
     }
+
+    
 }
