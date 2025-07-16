@@ -12,83 +12,102 @@ date_default_timezone_set('Asia/Manila');
 
 class DateController extends Controller
 {
+    protected $user;
+
+    protected $log;
+
+    public function __construct()
+    {
+        $this->user = auth()->user();
+
+        $this->log = $this->user->dates()
+            ->whereDate('time_in', now())
+            ->first();
+    }
+
     public function index()
     {
-        $userId = Auth::id();
+        return view('home', [
+            'user'      => $this->user,
+            'todaysLog' => $this->log,
+        ]);
+    }
 
-        $dtrs = Date::where('user_id', $userId)->get();
-
-        $todayLog = Date::where('user_id', $userId)
-                        ->whereDate('time_in', now())
-                        ->first();
-
-        $timeIn = $todayLog?->time_in ? Carbon::parse($todayLog->time_in) : null;
-        $timeOut = $todayLog?->time_out ? Carbon::parse($todayLog->time_out) : null;
-
-        $status = 'not_timed_in';
-        if ($timeIn && !$timeOut) {
-            $status = 'timed_in';
-        } elseif ($timeIn && $timeOut) {
-            $status = 'timed_out';
+    public function break()
+    {
+        if (!$this->log) {
+            return redirect()->route('home')->with('error', 'You need to time in first.');
         }
 
-        $duration = null;
-        if ($timeIn && !$timeOut) {
-            $duration = now()->diff($timeIn)->format('%H:%I:%S');
+
+        if (empty($this->log->break_in)) {
+            $this->log->break_in = now();
+            $this->log->save();
+
+            return redirect()->route('home')->with('success', 'Break started!');
         }
 
-        return view('home', compact('dtrs', 'timeIn', 'timeOut', 'status', 'duration'));
+        $this->log->break_out = now();
+        $this->log->save();
+
+        return redirect()->route('home')->with('success', 'Break ended!');
     }
 
     public function timeIn()
     {
-        $userId = Auth::id();
-
-        $existing = Date::where('user_id', $userId)
-                        ->whereDate('time_in', now())
-                        ->first();
-
-        if (!$existing) {
-            Date::create([
-                'user_id' => $userId,
-                'time_in' => now(),
-            ]);
-
-            return redirect()->route('home')->with('success', 'Time In recorded!');
+        // condition para dili sigeg balik og time in
+        if (!empty($this->log->time_in)) {
+            return redirect()->route('home')->with('error', 'You have already timed in today.');
         }
 
-        return redirect()->route('home')->with('error', 'You have already timed in today.');
+        $this->log = $this->user->dates()->firstOrCreate([
+            'time_in' => now(),
+        ]);
+
+        return redirect()->route('home')->with('success', 'Time In recorded!');
     }
 
     public function timeOut()
     {
-        $userId = Auth::id();
-
-        $log = Date::where('user_id', $userId)
-                   ->whereDate('time_in', now())
-                   ->first();
-
-        if (!$log) {
-            return redirect()->route('home')->with('error', 'You need to time in first.');
+        // condition para dili sigeg balik og time in
+        if (!empty($this->log->time_out)) {
+            return redirect()->route('home')->with('error', 'You have already timed in today.');
         }
 
-        if ($log->time_out) {
-            return redirect()->route('home')->with('error', 'You already timed out today.');
-        }
+        $this->log->time_out = now();
+        $this->log->save();
 
-        $now = now();
-        $log->update(['time_out' => $now]);
 
-        $user = User::findOrFail($userId);
-        $requiredHours = $user->hour ?? 8;
-        $dtrs = $user->dates()->get();
-        $totalWorked = 0;
-        foreach ($dtrs as $dtr) {
-            $totalWorked += $dtr->diffInHours() ?? 0;
+        $requiredHours = $this->user->hour ?? 0;
+        $timeIn = $this->log->time_in;
+        $timeOut = $this->log->time_out ?? now();
+        $breakIn = $this->log->break_in;
+        $breakOut = $this->log->break_out;
+
+        if ($requiredHours > 0 && $timeIn) {
+            // Total allowed time in seconds
+            $totalSeconds = $requiredHours * 3600;
+
+            // Calculate total session time
+            $workedSeconds = Carbon::parse($timeOut)->diffInSeconds(Carbon::parse($timeIn));
+
+            // If break_in and break_out are set, subtract break duration
+            if ($breakIn && $breakOut) {
+                $breakSeconds = Carbon::parse($breakOut)->diffInSeconds(Carbon::parse($breakIn));
+                $workedSeconds = max($workedSeconds - $breakSeconds, 0);
+            }
+
+            // Calculate remaining time in seconds
+            $remainingSeconds = max($totalSeconds - $workedSeconds, 0);
+
+            // Convert to hours (decimal)
+            $remainingHours = round($remainingSeconds / 3600, 2);
+
+            // Save to user
+            $this->user->remaining_hours = $remainingHours;
+            $this->user->save();
+
         }
-        $remaining = max($requiredHours - $totalWorked, 0);
-        $user->remaining_hours = (int) $remaining;
-        $user->save();
 
         return redirect()->route('home')->with('success', 'Time Out recorded!');
     }
@@ -99,19 +118,19 @@ class DateController extends Controller
         $userId = Auth::id();
 
         $dtrs = Date::where('user_id', $userId)
-                ->orderByDesc('time_in')
-                ->get();
+            ->orderByDesc('time_in')
+            ->get();
 
         return view('history', compact('dtrs'));
     }
 
-    
+
     public function users()
     {
         $users = User::all();
         return view('user', compact('users'));
     }
-    
+
     public function userHistory($id)
     {
         $user = User::findOrFail($id);
@@ -127,9 +146,3 @@ class DateController extends Controller
         return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
     }
 }
-
-
-
-
-
-

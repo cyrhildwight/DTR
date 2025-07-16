@@ -21,14 +21,21 @@ class Date extends Model
         return $field ? \Carbon\Carbon::parse($field) : null;
     }
 
-    
+
     public function diff()
     {
         if (!empty($this->time_in) && !empty($this->time_out)) {
             $timeIn = Carbon::parse($this->time_in);
             $timeOut = Carbon::parse($this->time_out);
 
-            return $timeIn->diff($timeOut)->forHumans(['short' => true]);
+            if (!empty($this->break_in) && !empty($this->break_out)) {
+                $breakIn = Carbon::parse($this->break_in);
+                $breakOut = Carbon::parse($this->break_out);
+
+                $breakSeconds = $breakOut->diffInHours($breakIn);
+            }
+
+            return $timeIn->subHours($breakSeconds)->diff($timeOut)->forHumans(['short' => true]);
         }
 
         return null;
@@ -94,6 +101,3 @@ class Date extends Model
         return $result;
     }
 }
-
-
-
