@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-     Schema::create('time_logs', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        $table->timestamp('time_in')->nullable();
-        $table->timestamp('time_out')->nullable();
-        $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->float('remaining_hours')->default(0)->after('hour');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('time_logs');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('remaining_hours');
+        });
     }
 };

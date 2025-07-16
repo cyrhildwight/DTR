@@ -81,6 +81,15 @@
         </div>
 
         <div>
+          <label for="hour" class="block text-sm font-semibold uppercase tracking-wide mb-1 text-gray-700">Required Hours</label>
+          <input type="hour" id="hour" name="hour" value="{{ old('hour') }}" required
+            class="w-full px-4 py-2 border border-gray-400 rounded-lg bg-white text-gray-800 placeholder-gray-500 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"/>
+          @error('hour')
+            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+          @enderror
+        </div>
+
+        <div>
           <label for="password" class="block text-sm font-semibold uppercase tracking-wide mb-1 text-gray-700">Password</label>
           <input type="password" id="password" name="password" required
             class="w-full px-4 py-2 border border-gray-400 rounded-lg bg-white text-gray-800 placeholder-gray-500 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"/>

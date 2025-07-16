@@ -20,6 +20,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timein', [DateController::class, 'timeIn'])->name('dtr.timein');
     Route::post('/timeout', [DateController::class, 'timeOut'])->name('dtr.timeout');
     Route::post('/logout', [AuthController::class, 'getLogout'])->name('logout');
+    Route::get('/history', [DateController::class, 'history'])->name('history');
+    Route::get('/users', [DateController::class, 'users'])->name('users');
+    Route::get('/users/{id}/history', [DateController::class, 'userHistory'])->name('users.history');
 });
 
 
