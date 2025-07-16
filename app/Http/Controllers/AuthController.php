@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-   public function getLogin()
+    public function getLogin()
     {
         return view('auth.login');
     }
@@ -50,6 +50,7 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'hour' => $validated['hour'],
+            'remaining_hours' => $validated['hour'],
         ]);
 
         return redirect()->route('login')->with('success', 'Registration successful! Please login.');
@@ -61,5 +62,3 @@ class AuthController extends Controller
         return redirect()->to('/login');
     }
 }
-
-
