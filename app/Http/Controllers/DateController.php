@@ -6,6 +6,7 @@ use App\Models\Date;
 use App\Models\TimeLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use App\Models\User;
 
 date_default_timezone_set('Asia/Manila');
 
@@ -53,11 +54,6 @@ class DateController extends Controller
                 'time_in' => now(),
             ]);
 
-            TimeLog::create([
-                'user_id' => $userId,
-                'time_in' => now(),
-            ]);
-
             return redirect()->route('home')->with('success', 'Time In recorded!');
         }
 
@@ -72,26 +68,67 @@ class DateController extends Controller
                    ->whereDate('time_in', now())
                    ->first();
 
-        $log2 = TimeLog::where('user_id', $userId)
-                       ->whereDate('time_in', now())
-                       ->first();
-
-        if (!$log || !$log2) {
+        if (!$log) {
             return redirect()->route('home')->with('error', 'You need to time in first.');
         }
 
-        if ($log->time_out || $log2->time_out) {
+        if ($log->time_out) {
             return redirect()->route('home')->with('error', 'You already timed out today.');
         }
 
         $now = now();
-
         $log->update(['time_out' => $now]);
-        $log2->update(['time_out' => $now]);
+
+        $user = User::findOrFail($userId);
+        $requiredHours = $user->hour ?? 8;
+        $dtrs = $user->dates()->get();
+        $totalWorked = 0;
+        foreach ($dtrs as $dtr) {
+            $totalWorked += $dtr->diffInHours() ?? 0;
+        }
+        $remaining = max($requiredHours - $totalWorked, 0);
+        $user->remaining_hours = (int) $remaining;
+        $user->save();
 
         return redirect()->route('home')->with('success', 'Time Out recorded!');
     }
+
+    public function history()
+    {
+
+        $userId = Auth::id();
+
+        $dtrs = Date::where('user_id', $userId)
+                ->orderByDesc('time_in')
+                ->get();
+
+        return view('history', compact('dtrs'));
+    }
+
+    
+    public function users()
+    {
+        $users = User::all();
+        return view('user', compact('users'));
+    }
+    
+    public function userHistory($id)
+    {
+        $user = User::findOrFail($id);
+        $dtrs = $user->dates()->orderByDesc('time_in')->get();
+
+        $totalHoursWorked = 0;
+        foreach ($dtrs as $dtr) {
+            $totalHoursWorked += $dtr->diffInHours();
+        }
+
+        $requiredHours = $user->hour ?? 8;
+
+        return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
+    }
 }
+
+
 
 
 

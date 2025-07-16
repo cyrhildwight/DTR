@@ -10,23 +10,54 @@
 
 <body class="bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 min-h-screen text-white font-sans">
 
-    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-indigo-100/70 shadow-md">
-        <nav class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center">
-                <img src="/pic/logo.png" alt="Logo" class="h-12 w-auto mr-3 rounded-full shadow-lg border border-blue-500/30">
-                <span class="text-white text-xl font-bold tracking-wider">Daily Time Record</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <a href="/home" class="text-white hover:bg-indigo-700 px-4 py-2 rounded text-sm font-medium">View History</a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-medium">
-                        Logout
-                    </button>
-                </form>
-            </div>
-        </nav>
-    </header>
+<div class="relative peer">
+  <input type="checkbox" id="menu-toggle" class="hidden peer" />
+  <header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-800 via-blue-900 to-indigo-950 shadow-md border-b border-blue-400 w-full">
+    <nav class="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img src="/pic/logo.png" alt="Logo" class="h-10 w-10 rounded-full shadow border border-white/30">
+        <span class="text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">
+          <span class="text-blue-300">DTR</span><span class="text-white">System</span>
+        </span>
+      </div>
+      <ul class="hidden md:flex items-center space-x-5 text-sm sm:text-base">
+        <li><a href="{{ route('home') }}" class="uppercase text-white hover:text-blue-400 font-semibold tracking-wide">Home</a></li>
+        <li><a href="{{ route('history') }}" class="uppercase text-white hover:text-blue-400 font-semibold tracking-wide">My History</a></li>
+        <li><a href="{{ route('users') }}" class="uppercase text-white hover:text-blue-400 font-semibold tracking-wide">Users</a></li>
+        <li>
+          <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold px-5 py-2 rounded-full shadow transition duration-200">
+              Logout
+            </button>
+          </form>
+        </li>
+      </ul>
+      <label for="menu-toggle" class="md:hidden cursor-pointer flex flex-col justify-center items-center w-8 h-8 bg-white rounded-full shadow z-50">
+        <div class="w-5 h-0.5 bg-blue-700 mb-1"></div>
+        <div class="w-5 h-0.5 bg-blue-700 mb-1"></div>
+        <div class="w-5 h-0.5 bg-blue-700"></div>
+      </label>
+    </nav>
+  </header>
+  <div class="md:hidden absolute right-4 top-[72px] w-48 bg-white text-black rounded-lg shadow-lg transition-all duration-300 ease-in-out scale-0 peer-checked:scale-100 origin-top-right z-40">
+    <ul class="flex flex-col gap-3 p-4 font-semibold">
+      <li><a href="{{ route('home') }}" class="hover:text-blue-600 uppercase">Home</a></li>
+      <li><a href="{{ route('history') }}" class="hover:text-blue-600 uppercase">My History</a></li>
+      <li><a href="{{ route('users') }}" class="hover:text-blue-600 uppercase">Users</a></li>
+      <li>
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="w-full text-left text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 px-4 py-2 rounded-full shadow">
+            Logout
+          </button>
+        </form>
+      </li>
+    </ul>
+  </div>
+</div>
+
+
     <main class="flex items-center justify-center pt-32 pb-10 px-4">
         <div class="mt-[200px] bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl shadow-2xl p-1 w-full max-w-md">
             <div class="bg-[#f4f4f4] text-gray-800 rounded-2xl px-10 py-10 shadow-inner text-center">
@@ -77,22 +108,24 @@
         </div>
     </main>
 
+    @if($timeIn)
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const durationElement = document.getElementById('test');
-            const timeIn = new Date("{{ $timeIn->format('Y-m-d h:i:s') }}");
+    document.addEventListener('DOMContentLoaded', function() {
+        const durationElement = document.getElementById('test');
+        const timeIn = new Date("{{ $timeIn->format('Y-m-d H:i:s') }}");
 
-            if (durationElement) {
-                setInterval(() => {
-                    const now = new Date();
-                    const diffMs = now - timeIn;
-                    const hours = String(Math.floor(diffMs / (1000 * 60 * 60))).padStart(2, '0');
-                    const minutes = String(Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-                    const seconds = String(Math.floor((diffMs % (1000 * 60)) / 1000)).padStart(2, '0');
-                    durationElement.innerHTML = `${hours}:${minutes}:${seconds}`;
-                }, 1000);
-            }
-        });
+        if (durationElement) {
+            setInterval(() => {
+                const now = new Date();
+                const diffMs = now - timeIn;
+                const hours = String(Math.floor(diffMs / (1000 * 60 * 60))).padStart(2, '0');
+                const minutes = String(Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                const seconds = String(Math.floor((diffMs % (1000 * 60)) / 1000)).padStart(2, '0');
+                durationElement.innerHTML = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        }
+    });
     </script>
+    @endif
 </body>
 </html>
