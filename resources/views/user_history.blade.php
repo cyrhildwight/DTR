@@ -11,34 +11,53 @@
 <body class="min-h-screen bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 text-white font-sans">
 <div class="relative peer">
   <input type="checkbox" id="menu-toggle" class="hidden peer" />
-  <header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-800 via-blue-900 to-indigo-950 shadow-md border-b border-blue-400 w-full">
-    <nav class="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <img src="/pic/logo.png" alt="Logo" class="h-10 w-10 rounded-full shadow border border-white/30">
-        <span class="text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">
-          <span class="text-blue-300">DTR</span><span class="text-white">System</span>
-        </span>
+ <header class="fixed top-0 left-0 right-0 z-50 bg-black shadow-md border-b border-gray-800 w-full">
+  <nav class="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="p-1 bg-white rounded-full shadow-lg border-2">
+        <img src="/pic/logo.png" alt="Logo" class="h-10 w-10 rounded-full" />
       </div>
-      <ul class="hidden md:flex items-center space-x-5 text-sm sm:text-base">
-        <li><a href="{{ route('home') }}" class="uppercase text-white hover:text-blue-400 font-semibold tracking-wide">Home</a></li>
-        <li><a href="{{ route('history') }}" class="uppercase text-white hover:text-blue-400 font-semibold tracking-wide">My History</a></li>
-        <li><a href="{{ route('users') }}" class="uppercase text-white hover:text-blue-400 font-semibold tracking-wide">Users</a></li>
-        <li>
-          <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold px-5 py-2 rounded-full shadow transition duration-200">
-              Logout
-            </button>
-          </form>
-        </li>
-      </ul>
-      <label for="menu-toggle" class="md:hidden cursor-pointer flex flex-col justify-center items-center w-8 h-8 bg-white rounded-full shadow z-50">
-        <div class="w-5 h-0.5 bg-blue-700 mb-1"></div>
-        <div class="w-5 h-0.5 bg-blue-700 mb-1"></div>
-        <div class="w-5 h-0.5 bg-blue-700"></div>
-      </label>
-    </nav>
-  </header>>
+      <span class="text-2xl font-extrabold tracking-tight text-white whitespace-nowrap">
+        <span class="text-green-500">DTR</span><span class="text-white">System</span>
+      </span>
+    </div>
+    <ul class="hidden md:flex items-center space-x-6 text-sm sm:text-base">
+      <li>
+        <a href="{{ route('home') }}"
+           class="text-white font-semibold uppercase px-5 py-2 rounded-full transition duration-200 hover:bg-green-600 hover:text-white">
+          Home
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('history') }}"
+           class="text-white font-semibold uppercase px-5 py-2 rounded-full transition duration-200 hover:bg-green-600 hover:text-white">
+          My History
+        </a>
+      </li>
+      <li>
+        <a href="{{ route('users') }}"
+           class="text-white font-semibold uppercase px-5 py-2 rounded-full transition duration-200 hover:bg-green-600 hover:text-white">
+          Users
+        </a>
+      </li>
+      <li>
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit"
+                  class="bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2 rounded-full transition duration-200 shadow-md">
+            Logout
+          </button>
+        </form>
+      </li>
+    </ul>
+    <label for="menu-toggle" class="md:hidden cursor-pointer flex flex-col justify-center items-center w-8 h-8 bg-white rounded-full shadow z-50">
+      <div class="w-5 h-0.5 bg-[#0000A0] mb-1"></div>
+      <div class="w-5 h-0.5 bg-[#0000A0] mb-1"></div>
+      <div class="w-5 h-0.5 bg-[#0000A0]"></div>
+    </label>
+
+  </nav>
+</header>
   <div class="md:hidden absolute right-4 top-[72px] w-48 bg-white text-black rounded-lg shadow-lg transition-all duration-300 ease-in-out scale-0 peer-checked:scale-100 origin-top-right z-40">
     <ul class="flex flex-col gap-3 p-4 font-semibold">
       <li><a href="{{ route('home') }}" class="hover:text-blue-600 uppercase">Home</a></li>

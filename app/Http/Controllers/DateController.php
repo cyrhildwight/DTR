@@ -146,3 +146,4 @@ class DateController extends Controller
         return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
     }
 }
+
