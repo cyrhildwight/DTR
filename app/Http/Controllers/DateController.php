@@ -132,18 +132,24 @@ class DateController extends Controller
     }
 
     public function userHistory($id)
-    {
-        $user = User::findOrFail($id);
-        $dtrs = $user->dates()->orderByDesc('time_in')->get();
+{
+    $user = User::findOrFail($id);
+    $dtrs = $user->dates()->orderByDesc('time_in')->get();
 
-        $totalHoursWorked = 0;
-        foreach ($dtrs as $dtr) {
-            $totalHoursWorked += $dtr->diffInHours();
-        }
-
-        $requiredHours = $user->hour ?? 8;
-
-        return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
+    $totalHoursWorked = 0;
+    foreach ($dtrs as $dtr) {
+        $totalHoursWorked += $dtr->diffInHours();
     }
+
+    $requiredHours = $user->hour ?? 8;
+
+    $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
+    $user->remaining_hours = $remainingHours;
+
+    return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
 }
+
+}
+
+
 
