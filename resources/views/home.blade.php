@@ -217,21 +217,22 @@
           </form>
           @endif
 
-          <input type="text" name="face_data" id="face_data">
-          <button type="button" onclick="timeOut()"
-            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
-            Time Out
-          </button>
-          @endif
+          <input type="hidden" id="timeout_face_data" name="face_data">
+        <button type="button" onclick="timeOut()"
+          class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
+          Time Out
+        </button>
+        @endif
 
-          @else
-          <input type="text" name="face_data" id="face_data">
-          <button type="button" onclick="timeIn()"
-            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
-            Time In
-          </button>
-          @endif
-          
+        @else
+        {{-- No Time In yet --}}
+        <input type="hidden" name="face_data" id="face_data">
+        <button type="button" onclick="timeIn()"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
+          Time In
+        </button>
+        @endif
+
           {{-- Webcam Display for Face Capture --}}
           <div class="mt-6">
             <div id="camera" class="rounded-lg overflow-hidden mx-auto w-full max-w-xs border border-gray-300 shadow"></div>
@@ -296,47 +297,40 @@
       }
 
       function timeOut() {
-        const input = document.getElementById('face_data');
-
-        if (input && Webcam) {
-          Webcam.snap(function(data_uri) {
-            input.value = data_uri;
-          });
-        }
-
-        fetch('/timeout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            },
-            body: JSON.stringify({
-              face_data: input.value
+      const input = document.getElementById('timeout_face_data');
+      if (input && Webcam) {
+        Webcam.snap(function (data_uri) {
+          input.value = data_uri;
+          fetch('/timeout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              },
+              body: JSON.stringify({
+                face_data: input.value
+              })
             })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status == 'success') {
-              alert('Time out successful!');
-              window.location.reload();
-            } else {
-              alert('Error: ' + data.message || 'Failed to time out.');
-              if (Webcam && input) {
-                Webcam.reset();
-                Webcam.attach('#camera');
-                input.value = '';
+            .then(response => response.json())
+            .then(data => {
+              if (data.status == 'success') {
+                alert('Time out successful!');
+                window.location.reload();
+              } else {
+                alert('Error: ' + (data.message || 'Failed to time out.'));
               }
-            }
-          }).catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while processing your request.');
-          });
+            }).catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred while processing your request.');
+            });
+        });
       }
-    </script>
-    @if(!empty($todaysLog) && $todaysLog->time_in)
+    }
+  </script>
+  @if(!empty($todaysLog) && $todaysLog->time_in)
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const durationElement = document.getElementById('test');
+      const durationElement = document.getElementById('liveDuration');
       const timeIn = new Date("{{ $todaysLog->time('time_in')?->format('Y-m-d H:i:s') }}");
 
       if (durationElement) {
@@ -352,8 +346,9 @@
     });
   </script>
   @endif
-
-
 </body>
 
 </html>
+
+
+

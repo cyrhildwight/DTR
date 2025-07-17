@@ -181,30 +181,35 @@
                 </tr>
               </thead>
               <tbody class="bg-white text-gray-800">
-                @forelse($dtrs as $dtr)
-                <tr class="even:bg-blue-50 odd:bg-blue-100 hover:bg-blue-200 transition">
-                  <td class="px-4 py-2 font-medium">
-                    {{ $dtr->time('time_in')?->format('M d, Y') }}
-                  </td>
-                  <td class="px-4 py-2 font-semibold text-green-700">
-                    <div class="flex items-center gap-2">
+  @forelse($dtrs as $dtr)
+  <tr class="even:bg-blue-50 odd:bg-blue-100 hover:bg-blue-200 transition">
+    <td class="px-4 py-2 font-medium">
+      {{ $dtr->time('time_in')?->format('M d, Y') }}
+    </td>
+    <td class="px-4 py-2 font-semibold text-green-700">
+      <div class="flex items-center gap-2">
+        @if(!empty($dtr->time_in_image))
+        <img src="{{ $dtr->time_in_image }}" alt="Time In Image" class="w-[80px] cursor-pointer" onclick="showImage('{{ $dtr->time_in_image }}')">
+        @endif
+        {{ $dtr->time_in ? \Carbon\Carbon::parse($dtr->time_in)->format('h:i:s A') : '—' }}
+      </div>
+    </td>
+    <td class="px-4 py-2 font-semibold text-red-700">
+      <div class="flex items-center gap-2">
+        @if(!empty($dtr->time_out_image))
+        <img src="{{ $dtr->time_out_image }}" alt="Time Out Image" class="w-[80px] cursor-pointer" onclick="showImage('{{ $dtr->time_out_image }}')">
+        @endif
+        {{ $dtr->time_out ? \Carbon\Carbon::parse($dtr->time_out)->format('h:i:s A') : '—' }}
+      </div>
+    </td>
+  </tr>
+  @empty
+  <tr>
+    <td colspan="3" class="text-center px-4 py-6 text-gray-500">No records found.</td>
+  </tr>
+  @endforelse
+</tbody>
 
-                      @if(!empty($dtr->time_in_image))
-                      <img src="{{ $dtr->time_in_image }}" alt="Time In Image" class="w-[80px]" onclick="showImage('{{ $dtr->time_in_image }}')">
-                      @endif
-                      {{ $dtr->time_in ? \Carbon\Carbon::parse($dtr->time_in)->format('h:i:s A') : '—' }}
-                    </div>
-                  </td>
-                  <td class="px-4 py-2 font-semibold text-red-700">
-                    {{ $dtr->time_out ? \Carbon\Carbon::parse($dtr->time_out)->format('h:i:s A') : '—' }}
-                  </td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="3" class="text-center px-4 py-6 text-gray-500">No records found.</td>
-                </tr>
-                @endforelse
-              </tbody>
             </table>
           </div>
 
