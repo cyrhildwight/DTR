@@ -23,23 +23,26 @@ class Date extends Model
 
 
     public function diff()
-    {
-        if (!empty($this->time_in) && !empty($this->time_out)) {
-            $timeIn = Carbon::parse($this->time_in);
-            $timeOut = Carbon::parse($this->time_out);
+{
+    if (!empty($this->time_in) && !empty($this->time_out)) {
+        $timeIn = Carbon::parse($this->time_in);
+        $timeOut = Carbon::parse($this->time_out);
 
-            if (!empty($this->break_in) && !empty($this->break_out)) {
-                $breakIn = Carbon::parse($this->break_in);
-                $breakOut = Carbon::parse($this->break_out);
+        $breakSeconds = 0;
 
-                $breakSeconds = $breakOut->diffInHours($breakIn);
-            }
+        if (!empty($this->break_in) && !empty($this->break_out)) {
+            $breakIn = Carbon::parse($this->break_in);
+            $breakOut = Carbon::parse($this->break_out);
 
-            return $timeIn->subHours($breakSeconds)->diff($timeOut)->forHumans(['short' => true]);
+            $breakSeconds = $breakOut->diffInHours($breakIn);
         }
 
-        return null;
+        return $timeIn->subHours($breakSeconds)->diff($timeOut)->forHumans(['short' => true]);
     }
+
+    return null;
+}
+
 
     public function diffInHours()
     {
@@ -101,3 +104,5 @@ class Date extends Model
         return $result;
     }
 }
+
+

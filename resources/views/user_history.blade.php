@@ -6,6 +6,47 @@
     <title>{{ $user->name }} - DTR History</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+    .glow-border {
+      position: relative;
+      border-radius: 1rem;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glow-border::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        #3b82f6,
+        #06b6d4,
+        #9333ea,
+        transparent
+      );
+      border-radius: 1rem;
+      animation: glow-run 4s linear infinite;
+      z-index: -1;
+      mask: linear-gradient(#0000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask: linear-gradient(#0000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    @keyframes glow-run {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 text-white font-sans">
@@ -74,78 +115,83 @@
     </ul>
   </div>
 </div>
-    <main class="flex items-center justify-center pt-36 pb-10 px-2">
-        <div class="w-full max-w-2xl bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl shadow-xl p-4 sm:p-8">
-            <h2 class="text-xl sm:text-2xl font-bold text-blue-300 mb-2 text-center tracking-wide">{{ $user->name }}'s DTR History</h2>
-            <div class="text-center text-blue-200 mb-4 text-sm">
-                {{ $user->email }}
-            </div>
-            <div class="mb-4 text-center text-blue-200 text-sm">
-                <span class="font-semibold">Total Hours Worked:</span>
-                <span class="font-bold text-green-300">
-                    {{ number_format($totalHoursWorked, 2) }}
-                </span> hrs
-                <span class="mx-2">|</span>
-                <span class="font-semibold">Required Hours:</span>
-                <span class="font-bold text-yellow-300">{{ $requiredHours }}</span> hrs
-                <span class="mx-2">|</span>
-                <span class="font-semibold">Remaining:</span>
-                <span class="font-bold text-red-300">{{ $user->remaining_hours }}</span> hrs
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full rounded-xl overflow-hidden text-left text-sm">
-                    <thead>
-                        <tr class="bg-blue-900/80 text-blue-100">
-                            <th class="px-4 py-3 font-semibold">Date</th>
-                            <th class="px-4 py-3 font-semibold">Time In</th>
-                            <th class="px-4 py-3 font-semibold">Time Out</th>
-                            <th class="px-4 py-3 font-semibold">Hours Worked</th>
-                            <th class="px-4 py-3 font-semibold">Difference</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($dtrs as $dtr)
-                        <tr class="even:bg-blue-950/40 odd:bg-blue-900/20 hover:bg-blue-800/40 transition">
-                            <td class="px-4 py-2 font-medium text-blue-100">
-                                {{ $dtr->time('time_in')?->format('M d, Y') }}
-                            </td>
-                            <td class="px-4 py-2">
-                                <span class="font-semibold text-green-300">
-                                    {{ $dtr->time('time_in')?->format('h:i:s A') ?? '-'  }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <span class="font-semibold text-green-300">
-                                    {{ $dtr->time('time_out')?->format('h:i:s A') ?? '-' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2">
-                                 <span class="font-semibold text-green-300">  
-                                    {{ number_format($dtr->diffInHours(), 2) }} hrs
-                                </span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <span class="font-semibold">
-                                    {{ round($requiredHours - $dtr->diffInHours(), 2) }}
-                                </span>
-                            </td>
-                        </tr>
-                        @php
-                        $requiredHours -= $dtr->diffInHours();
-                        @endphp
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-4 py-6 text-center text-gray-400">No records found.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-6 text-center">
-                <a href="{{ route('users') }}" class="text-blue-400 hover:text-white font-semibold underline underline-offset-2">Back to Users</a>
-            </div>
-        </div>
-    </main>
+    <main class="flex items-center justify-center min-h-screen px-4 pt-32 bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 text-white font-sans">
+  <div class="glow-border w-full max-w-4xl">
+    <div class="bg-slate-100/90 text-gray-900 rounded-2xl px-4 sm:px-6 lg:px-10 py-6 sm:py-10 shadow-2xl">
+
+      <h2 class="text-xl sm:text-2xl font-bold text-blue-600 mb-1 text-center tracking-wide leading-tight">
+        {{ $user->name }}'s DTR History
+      </h2>
+
+      <div class="text-center text-gray-600 mb-4 text-xs sm:text-sm font-medium break-words">
+        {{ $user->email }}
+      </div>
+
+      <div class="mb-4 text-center text-xs sm:text-sm text-gray-700">
+        <span class="font-semibold">Total Hours Worked:</span>
+        <span class="font-bold text-green-600">
+          {{ number_format($totalHoursWorked, 2) }}
+        </span> hrs
+        <span class="mx-1 sm:mx-2">|</span>
+        <span class="font-semibold">Required Hours:</span>
+        <span class="font-bold text-yellow-600">{{ $requiredHours }}</span> hrs
+        <span class="mx-1 sm:mx-2">|</span>
+        <span class="font-semibold">Remaining:</span>
+        <span class="font-bold text-red-600">{{ $user->remaining_hours }}</span> hrs
+      </div>
+
+      <div class="overflow-x-auto rounded-lg shadow border border-gray-300">
+        <table class="min-w-full text-sm sm:text-base text-left text-gray-800">
+          <thead class="bg-blue-100 text-blue-700 text-xs sm:text-sm uppercase">
+            <tr>
+              <th class="px-2 py-2 sm:px-4 sm:py-3">Date</th>
+              <th class="px-2 py-2 sm:px-4 sm:py-3">Time In</th>
+              <th class="px-2 py-2 sm:px-4 sm:py-3">Time Out</th>
+              <th class="px-2 py-2 sm:px-4 sm:py-3">Hours Worked</th>
+              <th class="px-2 py-2 sm:px-4 sm:py-3">Diff</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white">
+            @forelse($dtrs as $dtr)
+              <tr class="even:bg-blue-50 odd:bg-blue-100 hover:bg-blue-200 transition">
+                <td class="px-2 py-2 sm:px-4 sm:py-2 font-medium">
+                  {{ $dtr->time('time_in')?->format('M d, Y') }}
+                </td>
+                <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
+                  {{ $dtr->time('time_in')?->format('h:i:s A') ?? '-'  }}
+                </td>
+                <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
+                  {{ $dtr->time('time_out')?->format('h:i:s A') ?? '-' }}
+                </td>
+                <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
+                  {{ number_format($dtr->diffInHours(), 2) }} hrs
+                </td>
+                <td class="px-2 py-2 sm:px-4 sm:py-2 font-semibold">
+                  {{ round($requiredHours - $dtr->diffInHours(), 2) }}
+                </td>
+              </tr>
+              @php
+                $requiredHours -= $dtr->diffInHours();
+              @endphp
+            @empty
+              <tr>
+                <td colspan="5" class="text-center py-6 text-gray-400">No records found.</td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 text-center">
+        <a href="{{ route('users') }}" class="text-blue-500 hover:text-blue-700 font-semibold underline underline-offset-2">
+          Back to Users
+        </a>
+      </div>
+
+    </div>
+  </div>
+</main>
+
 </body>
 </html>
 
