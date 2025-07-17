@@ -57,67 +57,71 @@ class DateController extends Controller
     {
         // condition para dili sigeg balik og time in
         if (!empty($this->log->time_in)) {
-            return redirect()->route('home')->with('error', 'You have already timed in today.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You have already timed in today.',
+            ]);
         }
 
         $this->log = $this->user->dates()->firstOrCreate([
             'time_in' => now(),
+            'time_in_image' => request()->input('face_data', null),
         ]);
 
-        return redirect()->route('home')->with('success', 'Time In recorded!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Time In recorded!',
+            'log' => $this->log,
+        ]);
     }
 
     public function timeOut()
-    {
-        // condition para dili sigeg balik og time in
-        if (!empty($this->log->time_out)) {
-            return redirect()->route('home')->with('error', 'You have already timed in today.');
-        }
-
-        $this->log->time_out = now();
-        $this->log->save();
-
-
-        $requiredHours = $this->user->hour ?? 0;
-        $timeIn = $this->log->time_in;
-        $timeOut = $this->log->time_out ?? now();
-        $breakIn = $this->log->break_in;
-        $breakOut = $this->log->break_out;
-
-        if ($requiredHours > 0 && $timeIn) {
-            // Total allowed time in seconds
-            $totalSeconds = $requiredHours * 3600;
-
-            // Calculate total session time
-            $workedSeconds = Carbon::parse($timeOut)->diffInSeconds(Carbon::parse($timeIn));
-
-            // If break_in and break_out are set, subtract break duration
-            if ($breakIn && $breakOut) {
-                $breakSeconds = Carbon::parse($breakOut)->diffInSeconds(Carbon::parse($breakIn));
-                $workedSeconds = max($workedSeconds - $breakSeconds, 0);
-            }
-
-            // Calculate remaining time in seconds
-            $remainingSeconds = max($totalSeconds - $workedSeconds, 0);
-
-            // Convert to hours (decimal)
-            $remainingHours = round($remainingSeconds / 3600, 2);
-
-            // Save to user
-            $this->user->remaining_hours = $remainingHours;
-            $this->user->save();
-
-        }
-
-        return redirect()->route('home')->with('success', 'Time Out recorded!');
+{
+    if (!empty($this->log->time_out)) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'You have already timed out today.',
+        ]);
     }
+
+    $this->log->time_out = now();
+    $this->log->time_out_image = request()->input('face_data', null);
+    $this->log->save();
+
+    $requiredHours = $this->user->hour ?? 0;
+    $timeIn = $this->log->time_in;
+    $timeOut = $this->log->time_out;
+    $breakIn = $this->log->break_in;
+    $breakOut = $this->log->break_out;
+
+    if ($requiredHours > 0 && $timeIn) {
+        $totalSeconds = $requiredHours * 3600;
+        $workedSeconds = Carbon::parse($timeOut)->diffInSeconds(Carbon::parse($timeIn));
+
+        if ($breakIn && $breakOut) {
+            $breakSeconds = Carbon::parse($breakOut)->diffInSeconds(Carbon::parse($breakIn));
+            $workedSeconds = max($workedSeconds - $breakSeconds, 0);
+        }
+
+        $remainingSeconds = max($totalSeconds - $workedSeconds, 0);
+        $remainingHours = round($remainingSeconds / 3600, 2);
+
+        $this->user->remaining_hours = $remainingHours;
+        $this->user->save();
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Time Out recorded!',
+        'log' => $this->log,
+    ]);
+}
+
 
     public function history()
     {
 
-        $userId = Auth::id();
-
-        $dtrs = Date::where('user_id', $userId)
+        $dtrs = $this->user->dates()
             ->orderByDesc('time_in')
             ->get();
 
@@ -132,24 +136,22 @@ class DateController extends Controller
     }
 
     public function userHistory($id)
-{
-    $user = User::findOrFail($id);
-    $dtrs = $user->dates()->orderByDesc('time_in')->get();
+    {
+        $user = User::findOrFail($id);
+        $dtrs = $user->dates()->orderByDesc('time_in')->get();
 
-    $totalHoursWorked = 0;
-    foreach ($dtrs as $dtr) {
-        $totalHoursWorked += $dtr->diffInHours();
+        $totalHoursWorked = 0;
+        foreach ($dtrs as $dtr) {
+            $totalHoursWorked += $dtr->diffInHours();
+        }
+
+        $requiredHours = $user->hour ?? 8;
+
+        $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
+        $user->remaining_hours = $remainingHours;
+
+        return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
     }
-
-    $requiredHours = $user->hour ?? 8;
-
-    $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
-    $user->remaining_hours = $remainingHours;
-
-    return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
 }
-
-}
-
 
 

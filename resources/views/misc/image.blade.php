@@ -1,0 +1,1 @@
+<img src="{{ $data }}" alt="Captured Image" class="w-full h-auto">

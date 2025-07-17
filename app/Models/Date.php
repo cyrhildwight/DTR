@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Date extends Model
 {
-    protected $fillable = ['user_id', 'time_in', 'time_out'];
+    protected $fillable = ['user_id', 'time_in', 'time_out', 'time_in_image', 'time_out_image', 'break_in', 'break_out'];
 
     public function user()
     {
