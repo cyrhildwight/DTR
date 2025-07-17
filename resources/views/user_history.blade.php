@@ -215,10 +215,20 @@
                   {{ $dtr->time('time_in')?->format('M d, Y') }}
                 </td>
                 <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
-                  {{ $dtr->time('time_in')?->format('h:i:s A') ?? '-'  }}
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                      @if(!empty($dtr->time_in_image))
+                      <img src="{{ $dtr->time_in_image }}" alt="Time In Image" class="w-[50px] sm:w-[80px] cursor-pointer rounded" onclick="showImage('{{ $dtr->time_in_image }}')">
+                      @endif
+                      {{ $dtr->time_in ? \Carbon\Carbon::parse($dtr->time_in)->format('h:i:s A') : '—' }}
+                    </div>
                 </td>
                 <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
-                  {{ $dtr->time('time_out')?->format('h:i:s A') ?? '-' }}
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                      @if(!empty($dtr->time_out_image))
+                      <img src="{{ $dtr->time_out_image }}" alt="Time Out Image" class="w-[50px] sm:w-[80px] cursor-pointer rounded" onclick="showImage('{{ $dtr->time_out_image }}')">
+                      @endif
+                      {{ $dtr->time_out ? \Carbon\Carbon::parse($dtr->time_out)->format('h:i:s A') : '—' }}
+                    </div>
                 </td>
                 <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
                   {{ number_format($dtr->diffInHours(), 2) }} hrs
