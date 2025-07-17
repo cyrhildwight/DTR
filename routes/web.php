@@ -4,6 +4,9 @@ use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DateController;
+use App\Http\Controllers\FaceCaptureController;
+use App\Http\Controllers\FaceregisterController;
+use App\Http\Controllers\MiscController;
 
 // Guest-only routes
 Route::middleware('guest')->group(function () {
@@ -24,6 +27,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/history', [DateController::class, 'history'])->name('history');
     Route::get('/users', [DateController::class, 'users'])->name('users');
     Route::get('/users/{id}/history', [DateController::class, 'userHistory'])->name('users.history');
+    Route::post('/capture/timein', [FaceCaptureController::class, 'timeIn'])->name('face.timein');
+    Route::post('/capture/break', [FaceCaptureController::class, 'break'])->name('face.break');
+    Route::post('/capture/timeout', [FaceCaptureController::class, 'timeOut'])->name('face.timeout');
+    Route::post('/face-capture', [FaceCaptureController::class, 'store'])->name('face.store');
+    Route::get('/image', [MiscController::class, 'showImage'])->name('image.show');
 });
 
 

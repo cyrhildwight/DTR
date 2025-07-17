@@ -57,26 +57,36 @@ class DateController extends Controller
     {
         // condition para dili sigeg balik og time in
         if (!empty($this->log->time_in)) {
-            return redirect()->route('home')->with('error', 'You have already timed in today.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You have already timed in today.',
+            ]);
         }
 
         $this->log = $this->user->dates()->firstOrCreate([
             'time_in' => now(),
+            'time_in_image' => request()->input('face_data', null),
         ]);
 
-        return redirect()->route('home')->with('success', 'Time In recorded!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Time In recorded!',
+            'log' => $this->log,
+        ]);
     }
 
     public function timeOut()
     {
         // condition para dili sigeg balik og time in
         if (!empty($this->log->time_out)) {
-            return redirect()->route('home')->with('error', 'You have already timed in today.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You have already timed out today.',
+            ]);
         }
 
         $this->log->time_out = now();
         $this->log->save();
-
 
         $requiredHours = $this->user->hour ?? 0;
         $timeIn = $this->log->time_in;
@@ -106,18 +116,19 @@ class DateController extends Controller
             // Save to user
             $this->user->remaining_hours = $remainingHours;
             $this->user->save();
-
         }
 
-        return redirect()->route('home')->with('success', 'Time Out recorded!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Time Out recorded!',
+            'log' => $this->log,
+        ]);
     }
 
     public function history()
     {
 
-        $userId = Auth::id();
-
-        $dtrs = Date::where('user_id', $userId)
+        $dtrs = $this->user->dates()
             ->orderByDesc('time_in')
             ->get();
 
@@ -132,24 +143,20 @@ class DateController extends Controller
     }
 
     public function userHistory($id)
-{
-    $user = User::findOrFail($id);
-    $dtrs = $user->dates()->orderByDesc('time_in')->get();
+    {
+        $user = User::findOrFail($id);
+        $dtrs = $user->dates()->orderByDesc('time_in')->get();
 
-    $totalHoursWorked = 0;
-    foreach ($dtrs as $dtr) {
-        $totalHoursWorked += $dtr->diffInHours();
+        $totalHoursWorked = 0;
+        foreach ($dtrs as $dtr) {
+            $totalHoursWorked += $dtr->diffInHours();
+        }
+
+        $requiredHours = $user->hour ?? 8;
+
+        $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
+        $user->remaining_hours = $remainingHours;
+
+        return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
     }
-
-    $requiredHours = $user->hour ?? 8;
-
-    $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
-    $user->remaining_hours = $remainingHours;
-
-    return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
 }
-
-}
-
-
-
