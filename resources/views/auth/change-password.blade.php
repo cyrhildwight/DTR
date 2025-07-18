@@ -3,45 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>All Users - DTR System</title>
+  <title>DTR System</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    .glow-border {
-      position: relative;
-      border-radius: 1rem;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .glow-border::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      padding: 2px;
-      background: linear-gradient(90deg, transparent, #3b82f6, #06b6d4, #9333ea, transparent);
-      border-radius: 1rem;
-      animation: glow-run 4s linear infinite;
-      z-index: -1;
-      mask: linear-gradient(#0000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask: linear-gradient(#0000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-    }
-
-    @keyframes glow-run {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 text-white font-sans">
+<body class="bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 min-h-screen text-white font-sans">
 
   <div class="relative peer">
     <header class="fixed top-0 left-0 right-0 z-50 bg-black shadow-md border-b border-gray-800 w-full">
@@ -187,62 +155,98 @@
         </li>
       </ul>
     </div>
+    <div class="bg-gradient-to-br from-blue-900 via-gray-900 to-black min-h-screen flex items-center justify-center px-4">
+      <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 sm:p-8">
+        <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">Change Password</h2>
 
-    <main class="flex items-center justify-center min-h-screen px-4 pt-32 pb-10">
-      <div class="glow-border w-full max-w-6xl">
-        <div class="bg-slate-100/90 text-gray-900 rounded-2xl px-4 sm:px-6 lg:px-10 py-6 sm:py-10 shadow-2xl">
-          <h2 class="text-xl sm:text-2xl font-bold text-blue-600 mb-4 text-center">All Users</h2>
+        @if (session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+          {{ session('error') }}
+        </div>
+        @endif
 
-          <div class="space-y-4">
-            @forelse($users as $user)
-            <div class="bg-white text-gray-900 rounded-xl p-4 shadow-md sm:hidden">
-              <p class="text-base font-bold">{{ $user->name }}</p>
-              <p class="text-sm text-gray-700">{{ $user->email }}</p>
-              <p class="text-sm text-yellow-600 font-semibold">Required Hours: {{ $user->hour ?? 8 }}</p>
-              <a href="{{ route('users.history', $user->id) }}"
-                class="mt-2 inline-block bg-blue-700 hover:bg-blue-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
-                View History
-              </a>
-            </div>
-            @empty
-            <p class="text-center text-gray-400">No users found.</p>
-            @endforelse
+        @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-sm">
+          {{ session('success') }}
+        </div>
+        @endif
+
+        @if ($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+          <ul class="list-disc list-inside">
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+        @endif
+
+
+        <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
+          @csrf
+
+          <div class="relative mb-4">
+            <label for="current_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+            <input type="password" id="current_password" name="current_password" required
+              class="block w-full px-4 py-2 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="button" onclick="togglePassword('current_password', this)" class="absolute inset-y-0 right-3 flex items-center justify-center text-gray-500 dark:text-gray-300 focus:outline-none">
+              <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
           </div>
 
-          <div class="hidden sm:block overflow-x-auto rounded-lg shadow border border-gray-300 mt-6">
-            <table class="min-w-full text-sm sm:text-base text-left text-gray-800">
-              <thead class="bg-blue-100 text-blue-700 text-xs sm:text-sm uppercase">
-                <tr>
-                  <th class="px-4 py-3">Name</th>
-                  <th class="px-4 py-3">Email</th>
-                  <th class="px-4 py-3">Required Hours</th>
-                  <th class="px-4 py-3 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white">
-                @forelse($users as $user)
-                <tr class="even:bg-blue-50 odd:bg-blue-100 hover:bg-blue-200 transition">
-                  <td class="px-4 py-2 font-medium">{{ $user->name }}</td>
-                  <td class="px-4 py-2">{{ $user->email }}</td>
-                  <td class="px-4 py-2 text-yellow-600 font-semibold">{{ $user->hour ?? 8 }}</td>
-                  <td class="px-4 py-2 text-center">
-                    <a href="{{ route('users.history', $user->id) }}"
-                      class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-1 rounded-full text-xs font-semibold transition">
-                      View History
-                    </a>
-                  </td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="4" class="text-center py-6 text-gray-400">No users found.</td>
-                </tr>
-                @endforelse
-              </tbody>
-            </table>
+
+          <div class="relative">
+            <label for="new_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+            <input type="password" id="new_password" name="new_password" required
+              class="mt-1 block w-full px-4 py-2 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="button" onclick="togglePassword('new_password', this)" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300 focus:outline-none">
+              <svg class="w-5 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
           </div>
 
-    </main>
+          <div class="relative">
+            <label for="new_password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+            <input type="password" id="new_password_confirmation" name="new_password_confirmation" required
+              class="mt-1 block w-full px-4 py-2 pr-10 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="button" onclick="togglePassword('new_password_confirmation', this)" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300 focus:outline-none">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+          <div class="pt-4">
+            <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 ease-in-out">
+              Change Password
+            </button>
+          </div>
+        </form>
+      </div>
+      <script>
+        function togglePassword(fieldId, btn) {
+          const input = document.getElementById(fieldId);
+          const svg = btn.querySelector('svg');
+          const eyeOpen = `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+          const eyeOff = `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a10.049 10.049 0 013.362-4.568M9.878 9.878A3 3 0 0114.121 14.12M3 3l18 18" />`;
 
+          if (input.type === "password") {
+            input.type = "text";
+            svg.innerHTML = eyeOff;
+          } else {
+            input.type = "password";
+            svg.innerHTML = eyeOpen;
+          }
+        }
+      </script>
+    </div>
 </body>
 
 </html>

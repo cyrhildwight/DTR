@@ -99,6 +99,16 @@
           </li>
 
           <li>
+            <a href="{{ route('password.change') }}"
+              class="flex items-center gap-2 text-white font-semibold uppercase px-5 py-2 rounded-full transition duration-200 hover:bg-blue-600 hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4m-4 0c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4" />
+              </svg>
+              Change Password
+            </a>
+          </li>
+
+          <li>
             <form method="POST" action="{{ route('logout') }}">
               @csrf
               <button type="submit"
@@ -155,6 +165,18 @@
             Users
           </a>
         </li>
+
+        <li>
+          <a href="{{ route('password.change') }}" class="flex items-center gap-2 hover:text-blue-600 uppercase">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4m-4 0c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4" />
+            </svg>
+            Change Password
+          </a>
+        </li>
+
         <li>
           <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -218,20 +240,20 @@
           @endif
 
           <input type="hidden" id="timeout_face_data" name="face_data">
-        <button type="button" onclick="timeOut()"
-          class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
-          Time Out
-        </button>
-        @endif
+          <button type="button" onclick="timeOut()"
+            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
+            Time Out
+          </button>
+          @endif
 
-        @else
-        {{-- No Time In yet --}}
-        <input type="hidden" name="face_data" id="face_data">
-        <button type="button" onclick="timeIn()"
-          class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
-          Time In
-        </button>
-        @endif
+          @else
+          {{-- No Time In yet --}}
+          <input type="hidden" name="face_data" id="face_data">
+          <button type="button" onclick="timeIn()"
+            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
+            Time In
+          </button>
+          @endif
 
           {{-- Webcam Display for Face Capture --}}
           <div class="mt-6">
@@ -259,114 +281,111 @@
       }
 
       function timeIn() {
-    const input = document.getElementById('face_data');
+        const input = document.getElementById('face_data');
 
-    if (!input || !Webcam) {
-      alert('Camera not ready!');
-      return;
-    }
+        if (!input || !Webcam) {
+          alert('Camera not ready!');
+          return;
+        }
 
-    Webcam.snap(function (data_uri) {
-      if (!data_uri) {
-        alert('Face capture failed!');
-        return;
-      }
-
-      input.value = data_uri;
-
-      fetch('/timein', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          },
-          body: JSON.stringify({
-            face_data: data_uri
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            alert('Time in successful!');
-            window.location.reload();
-          } else {
-            alert('Error: ' + (data.message || 'Failed to time in.'));
-            Webcam.reset();
-            Webcam.attach('#camera');
-            input.value = '';
+        Webcam.snap(function(data_uri) {
+          if (!data_uri) {
+            alert('Face capture failed!');
+            return;
           }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while processing your request.');
+
+          input.value = data_uri;
+
+          fetch('/timein', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              },
+              body: JSON.stringify({
+                face_data: data_uri
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'success') {
+                alert('Time in successful!');
+                window.location.reload();
+              } else {
+                alert('Error: ' + (data.message || 'Failed to time in.'));
+                Webcam.reset();
+                Webcam.attach('#camera');
+                input.value = '';
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred while processing your request.');
+            });
         });
-    });
-  }
-
-  function timeOut() {
-    const input = document.getElementById('timeout_face_data');
-
-    if (!input || !Webcam) {
-      alert('Camera not ready!');
-      return;
-    }
-
-    Webcam.snap(function (data_uri) {
-      if (!data_uri) {
-        alert('Face capture failed!');
-        return;
       }
 
-      input.value = data_uri;
+      function timeOut() {
+        const input = document.getElementById('timeout_face_data');
 
-      fetch('/timeout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          },
-          body: JSON.stringify({
-            face_data: data_uri
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            alert('Time out successful!');
-            window.location.reload();
-          } else {
-            alert('Error: ' + (data.message || 'Failed to time out.'));
+        if (!input || !Webcam) {
+          alert('Camera not ready!');
+          return;
+        }
+
+        Webcam.snap(function(data_uri) {
+          if (!data_uri) {
+            alert('Face capture failed!');
+            return;
           }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while processing your request.');
-        });
-    });
-  }
-  </script>
-  @if(!empty($todaysLog) && $todaysLog->time_in)
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const durationElement = document.getElementById('liveDuration');
-      const timeIn = new Date("{{ $todaysLog->time('time_in')?->format('Y-m-d H:i:s') }}");
 
-      if (durationElement) {
-        setInterval(() => {
-          const now = new Date();
-          const diffMs = now - timeIn;
-          const hours = String(Math.floor(diffMs / (1000 * 60 * 60))).padStart(2, '0');
-          const minutes = String(Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-          const seconds = String(Math.floor((diffMs % (1000 * 60)) / 1000)).padStart(2, '0');
-          durationElement.innerHTML = `${hours}:${minutes}:${seconds}`;
-        }, 1000);
+          input.value = data_uri;
+
+          fetch('/timeout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              },
+              body: JSON.stringify({
+                face_data: data_uri
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'success') {
+                alert('Time out successful!');
+                window.location.reload();
+              } else {
+                alert('Error: ' + (data.message || 'Failed to time out.'));
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred while processing your request.');
+            });
+        });
       }
-    });
-  </script>
-  @endif
+    </script>
+    @if(!empty($todaysLog) && $todaysLog->time_in)
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const durationElement = document.getElementById('liveDuration');
+        const timeIn = new Date("{{ $todaysLog->time('time_in')?->format('Y-m-d H:i:s') }}");
+
+        if (durationElement) {
+          setInterval(() => {
+            const now = new Date();
+            const diffMs = now - timeIn;
+            const hours = String(Math.floor(diffMs / (1000 * 60 * 60))).padStart(2, '0');
+            const minutes = String(Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            const seconds = String(Math.floor((diffMs % (1000 * 60)) / 1000)).padStart(2, '0');
+            durationElement.innerHTML = `${hours}:${minutes}:${seconds}`;
+          }, 1000);
+        }
+      });
+    </script>
+    @endif
 </body>
 
 </html>
-
-
-

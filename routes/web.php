@@ -4,8 +4,7 @@ use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DateController;
-use App\Http\Controllers\FaceCaptureController;
-use App\Http\Controllers\FaceregisterController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MiscController;
 
 // Guest-only routes
@@ -28,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users', [DateController::class, 'users'])->name('users');
     Route::get('/users/{id}/history', [DateController::class, 'userHistory'])->name('users.history');
     Route::get('/image', [MiscController::class, 'showImage'])->name('image.show');
+    Route::get('/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('password.change');
+    Route::post('/change-password', [ProfileController::class, 'changePassword'])->name('password.update');
 });
 
 
