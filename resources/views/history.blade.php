@@ -62,7 +62,7 @@
         padding: 1rem;
       }
 
-      .glow-border > div {
+      .glow-border>div {
         padding: 1rem;
       }
     }
@@ -117,6 +117,16 @@
                   d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 12a4 4 0 100-8 4 4 0 000 8z" />
               </svg>
               Users
+            </a>
+          </li>
+
+          <li>
+            <a href="{{ route('password.change') }}"
+              class="flex items-center gap-2 text-white font-semibold uppercase px-5 py-2 rounded-full transition duration-200 hover:bg-blue-600 hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4m-4 0c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4" />
+              </svg>
+              Change Password
             </a>
           </li>
 
@@ -177,6 +187,18 @@
             Users
           </a>
         </li>
+
+        <li>
+          <a href="{{ route('password.change') }}" class="flex items-center gap-2 hover:text-blue-600 uppercase">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4m-4 0c0-1.104.896-2 2-2s2 .896 2 2-2 4-2 4" />
+            </svg>
+            Change Password
+          </a>
+        </li>
+
         <li>
           <form method="POST" action="{{ route('logout') }}">
             @csrf

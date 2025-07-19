@@ -38,6 +38,26 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .eye-toggle {
+      position: absolute;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #6b7280;
+    }
+
+    .dark .eye-toggle {
+      color: #d1d5db;
+    }
+
+    .eye-toggle svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  </style>
+  
   </style>
 </head>
 
@@ -63,13 +83,24 @@
             class="w-full px-4 py-2 border border-gray-400 rounded-lg bg-white text-gray-800 placeholder-gray-500 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"/>
         </div>
 
-        <div>
+        <div class="relative">
           <label for="password" class="block text-sm font-semibold uppercase tracking-wide mb-1 text-gray-700">
             Password
           </label>
           <input type="password" id="password" name="password" required
-            class="w-full px-4 py-2 border border-gray-400 rounded-lg bg-white text-gray-800 placeholder-gray-500 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"/>
+            class="w-full px-4 py-2 pr-10 border border-gray-400 rounded-lg bg-white text-gray-800 placeholder-gray-500 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+          <span class="eye-toggle" onclick="togglePassword('password', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7
+                     -1.274 4.057-5.065 7-9.542 7
+                     -4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </span>
         </div>
+
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-3 sm:gap-0">
           <label class="flex items-center gap-2 text-gray-700 font-medium">
             <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 bg-white border-gray-400">
@@ -91,5 +122,29 @@
     </div>
   </div>
 
+  <script>
+    function togglePassword(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      const svg = btn.querySelector('svg');
+      const eyeOpen = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7
+             -1.274 4.057-5.065 7-9.542 7
+             -4.477 0-8.268-2.943-9.542-7z" />`;
+      const eyeOff = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7
+            a10.049 10.049 0 013.362-4.568M9.878 9.878
+            A3 3 0 0114.121 14.12M3 3l18 18" />`;
+
+      if (input.type === "password") {
+        input.type = "text";
+        svg.innerHTML = eyeOff;
+      } else {
+        input.type = "password";
+        svg.innerHTML = eyeOpen;
+      }
+    }
+  </script>
 </body>
 </html>
