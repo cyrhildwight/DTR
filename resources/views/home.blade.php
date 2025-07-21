@@ -7,6 +7,7 @@
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <style>
     .glow-border {
       position: relative;
@@ -265,13 +266,59 @@
 
     </main>
     <script>
-      Webcam.set({
-        width: 320,
-        height: 240,
-        image_format: 'jpeg',
-        jpeg_quality: 90
-      });
-      Webcam.attach('#camera');
+      let cameraReady = false;
+      let faceDetected = false;
+      let video;
+
+      async function setupCameraAndFaceDetection() {
+        // Load face-api.js models
+        await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models');
+        // Attach webcam to a video element
+        Webcam.set({
+          width: 320,
+          height: 240,
+          image_format: 'jpeg',
+          jpeg_quality: 90
+        });
+        Webcam.attach('#camera');
+
+        // Wait for the webcam to be ready
+        setTimeout(() => {
+          video = document.querySelector('#camera video');
+          if (!video) {
+            alert('Camera not ready!');
+            return;
+          }
+          cameraReady = true;
+          checkFaceLoop();
+        }, 1000);
+      }
+
+      async function checkFaceLoop() {
+        if (!video) return;
+        const options = new faceapi.TinyFaceDetectorOptions();
+        setInterval(async () => {
+          if (!cameraReady) return;
+          const result = await faceapi.detectSingleFace(video, options);
+          faceDetected = !!result;
+          updateButtonState();
+        }, 500);
+      }
+
+      function updateButtonState() {
+        const timeInBtn = document.querySelector('button[onclick="timeIn()"]');
+        const timeOutBtn = document.querySelector('button[onclick="timeOut()"]');
+        if (timeInBtn) {
+          timeInBtn.disabled = !(cameraReady && faceDetected);
+          timeInBtn.classList.toggle('opacity-50', !faceDetected);
+          timeInBtn.classList.toggle('cursor-not-allowed', !faceDetected);
+        }
+        if (timeOutBtn) {
+          timeOutBtn.disabled = !(cameraReady && faceDetected);
+          timeOutBtn.classList.toggle('opacity-50', !faceDetected);
+          timeOutBtn.classList.toggle('cursor-not-allowed', !faceDetected);
+        }
+      }
 
       function takeSnapshot() {
         Webcam.snap(function(data_uri) {
@@ -281,6 +328,10 @@
       }
 
       function timeIn() {
+        if (!cameraReady || !faceDetected) {
+          alert('Camera not ready or face not detected!');
+          return;
+        }
         const input = document.getElementById('face_data');
 
         if (!input || !Webcam) {
@@ -326,6 +377,10 @@
       }
 
       function timeOut() {
+        if (!cameraReady || !faceDetected) {
+          alert('Camera not ready or face not detected!');
+          return;
+        }
         const input = document.getElementById('timeout_face_data');
 
         if (!input || !Webcam) {
@@ -366,6 +421,9 @@
             });
         });
       }
+
+      // Start everything after DOM is loaded
+      document.addEventListener('DOMContentLoaded', setupCameraAndFaceDetection);
     </script>
     @if(!empty($todaysLog) && $todaysLog->time_in)
     <script>
