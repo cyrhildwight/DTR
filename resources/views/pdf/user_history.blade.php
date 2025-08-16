@@ -13,12 +13,6 @@
             margin: 0;
             padding: 20px;
         }
-
-        /* Page breaks - only ONE page break before page 2 */
-        .page-1 {
-            /* no forced break here */
-        }
-
         .page-2 {
             page-break-before: always;
         }
