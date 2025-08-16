@@ -262,37 +262,53 @@
               </tbody>
             </table>
           </div>
-
-          <div class="mt-6 text-center">
-            <a href="{{ route('home') }}" class="text-blue-600 hover:text-blue-900 font-semibold underline underline-offset-2">Back to Home</a>
-          </div>
         </div>
       </div>
     </main>
 
     <!-- MODAL -->
-    <div id="modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto flex items-center justify-center px-2 py-6 sm:py-10">
-      <div class="max-w-[1000px] w-full mx-auto bg-zinc-900 p-4 sm:p-6 rounded-lg shadow-md relative overflow-y-auto max-h-full">
-        <button class="modal-close absolute top-2 right-2 bg-yellow-500 text-black rounded-full w-[30px] h-[30px] shadow">X</button>
-        <div class="modal-content">
-          <img src="" id="image_placeholder" class="w-full h-auto rounded-lg shadow-lg" alt="Captured Image">
+    <div id="image-modal-form" class="fixed inset-0 z-[60] hidden">
+      <div class="absolute inset-0 bg-black/60" data-close-modal></div>
+      <div role="dialog" aria-modal="true" class="relative mx-auto my-10 max-w-[1000px] w-[92%] bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        <button type="button" class="absolute top-3 right-3 p-2 rounded-full bg-slate-700 text-blue-300 shadow hover:bg-slate-600" data-close-modal aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div class="p-6">
+          <div class="modal-content">
+            <img src="" id="image_placeholder" class="w-full h-auto rounded-lg shadow-lg" alt="Captured Image">
+          </div>
         </div>
       </div>
     </div>
 
     <!-- SCRIPT -->
     <script>
-      document.querySelectorAll('.modal-close').forEach(button => {
-        button.addEventListener('click', () => {
-          document.getElementById('modal').classList.add('hidden');
+      document.addEventListener('DOMContentLoaded', function() {
+        // Close modal
+        document.querySelectorAll('[id$="-modal-form"]').forEach(function(modal) {
+          modal.querySelectorAll('[data-close-modal]').forEach(function(el) {
+            el.addEventListener('click', function() {
+              modal.classList.add('hidden');
+              document.body.classList.remove('overflow-hidden');
+            });
+          });
+          document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+              modal.classList.add('hidden');
+              document.body.classList.remove('overflow-hidden');
+            }
+          });
         });
       });
 
       function showImage(src) {
-        const modal = document.getElementById('modal');
+        const modal = document.getElementById('image-modal-form');
         const imagePlaceholder = document.getElementById('image_placeholder');
         imagePlaceholder.src = src;
         modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
       }
     </script>
   </div>

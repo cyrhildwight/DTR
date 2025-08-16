@@ -7,6 +7,7 @@
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <style>
     .glow-border {
       position: relative;
@@ -43,6 +44,30 @@
       100% {
         transform: rotate(360deg);
       }
+    }
+
+    #camera {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #06b6d4;
+      box-shadow: 0 0 0 4px #fff;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #camera video,
+    #camera canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      object-position: center center !important;
+      border-radius: 50% !important;
+      background: #000 !important;
+      display: block;
     }
   </style>
 </head>
@@ -257,7 +282,32 @@
 
           {{-- Webcam Display for Face Capture --}}
           <div class="mt-6">
-            <div id="camera" class="rounded-lg overflow-hidden mx-auto w-full max-w-xs border border-gray-300 shadow"></div>
+            <div style="position: relative; width: 240px; height: 240px; margin: 0 auto;">
+              <!-- Webcam feed (circular) -->
+              <div id="camera"
+                   style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 4px solid #06b6d4; box-shadow: 0 0 0 4px #fff;">
+              </div>
+              <!-- Optional: Add a subtle guide ring overlay if you want -->
+              <div
+                style="
+                  position: absolute;
+                  top: 0; left: 0; width: 100%; height: 100%;
+                  pointer-events: none;
+                  display: flex; align-items: center; justify-content: center;
+                ">
+                <div
+                  style="
+                    width: 220px; height: 220px;
+                    border: 2px dashed #06b6d4;
+                    border-radius: 50%;
+                    background: transparent;
+                  ">
+                </div>
+              </div>
+            </div>
+            <div class="text-center text-sm text-gray-400 mt-2">
+              Please align your face within the circle before timing in.
+            </div>
           </div>
         </div>
       </div>
@@ -265,13 +315,82 @@
 
     </main>
     <script>
-      Webcam.set({
-        width: 320,
-        height: 240,
-        image_format: 'jpeg',
-        jpeg_quality: 90
-      });
-      Webcam.attach('#camera');
+      let cameraReady = false;
+      let faceDetected = false;
+      let faceCentered = false;
+      let video;
+
+      async function setupCameraAndFaceDetection() {
+        // Load face-api.js models
+        await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models');
+        // Attach webcam to a video element
+        Webcam.set({
+          width: 240,
+          height: 240,
+          image_format: 'jpeg',
+          jpeg_quality: 90
+        });
+        Webcam.attach('#camera');
+
+        // Wait for the webcam to be ready
+        setTimeout(() => {
+          video = document.querySelector('#camera video');
+          if (!video) {
+            alert('Camera not ready!');
+            return;
+          }
+          cameraReady = true;
+          checkFaceLoop();
+        }, 1000);
+      }
+
+      async function checkFaceLoop() {
+        if (!video) return;
+        const options = new faceapi.TinyFaceDetectorOptions();
+        setInterval(async () => {
+          if (!cameraReady) return;
+          const result = await faceapi.detectSingleFace(video, options);
+          if (result) {
+            faceDetected = true;
+            const { x, y, width, height } = result.box;
+
+            // Adjust for cropped video
+            const cropOffsetX = (video.videoWidth - 240) / 2;
+            const cropOffsetY = (video.videoHeight - 240) / 2;
+            const centerX = x + width / 2 - cropOffsetX;
+            const centerY = y + height / 2 - cropOffsetY;
+
+            // Circle parameters
+            const circleRadius = 110; // overlay diameter is 220px
+            const dist = Math.sqrt(Math.pow(centerX - 120, 2) + Math.pow(centerY - 120, 2));
+            const faceDiagonal = Math.sqrt(width * width + height * height) / 2;
+            const fitsInCircle = (dist + faceDiagonal) < (circleRadius + 20); // more forgiving
+            const sizeOk = width > 130 && width < 200 && height > 130 && height < 200;
+            console.log({centerX, centerY, dist, width, height, faceDiagonal, fitsInCircle, sizeOk});
+            faceCentered = fitsInCircle && sizeOk;
+          } else {
+            faceDetected = false;
+            faceCentered = false;
+          }
+          updateButtonState();
+        }, 500);
+      }
+
+      function updateButtonState() {
+        const timeInBtn = document.querySelector('button[onclick="timeIn()"]');
+        const timeOutBtn = document.querySelector('button[onclick="timeOut()"]');
+        const canTime = cameraReady && faceDetected && faceCentered;
+        if (timeInBtn) {
+          timeInBtn.disabled = !canTime;
+          timeInBtn.classList.toggle('opacity-50', !canTime);
+          timeInBtn.classList.toggle('cursor-not-allowed', !canTime);
+        }
+        if (timeOutBtn) {
+          timeOutBtn.disabled = !canTime;
+          timeOutBtn.classList.toggle('opacity-50', !canTime);
+          timeOutBtn.classList.toggle('cursor-not-allowed', !canTime);
+        }
+      }
 
       function takeSnapshot() {
         Webcam.snap(function(data_uri) {
@@ -281,6 +400,10 @@
       }
 
       function timeIn() {
+        if (!cameraReady || !faceDetected || !faceCentered) {
+          alert('Please center your face in the circle!');
+          return;
+        }
         const input = document.getElementById('face_data');
 
         if (!input || !Webcam) {
@@ -326,6 +449,10 @@
       }
 
       function timeOut() {
+        if (!cameraReady || !faceDetected || !faceCentered) {
+          alert('Please center your face in the circle!');
+          return;
+        }
         const input = document.getElementById('timeout_face_data');
 
         if (!input || !Webcam) {
@@ -366,6 +493,9 @@
             });
         });
       }
+
+      // Start everything after DOM is loaded
+      document.addEventListener('DOMContentLoaded', setupCameraAndFaceDetection);
     </script>
     @if(!empty($todaysLog) && $todaysLog->time_in)
     <script>

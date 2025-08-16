@@ -268,13 +268,6 @@
               </tbody>
             </table>
           </div>
-
-          <div class="mt-6 text-center">
-            <a href="{{ route('users') }}" class="text-blue-500 hover:text-blue-700 font-semibold underline underline-offset-2">
-              Back to Users
-            </a>
-          </div>
-
         </div>
       </div>
     </main>
