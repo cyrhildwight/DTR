@@ -352,12 +352,27 @@
 
         // Auto-close modal after form submission
         document.getElementById('downloadForm').addEventListener('submit', function(e) {
-          // Don't prevent default - let the form submit normally
-          // Close the modal after a short delay to allow the download to start
-          setTimeout(function() {
-            document.getElementById('download-modal-form').classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-          }, 100);
+          e.preventDefault(); // Prevent page refresh
+          
+          // Get form data
+          var startDate = document.getElementById('start_date').value;
+          var endDate = document.getElementById('end_date').value;
+          var userId = this.action.split('/')[2];
+          
+          // Build download URL
+          var downloadUrl = `/users/${userId}/history/pdf?start_date=${startDate}&end_date=${endDate}`;
+          
+          // Create temporary link and trigger download
+          var link = document.createElement('a');
+          link.href = downloadUrl;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Close modal
+          document.getElementById('download-modal-form').classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
         });
       });
     </script>
