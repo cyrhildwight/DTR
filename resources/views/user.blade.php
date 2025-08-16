@@ -199,10 +199,16 @@
               <p class="text-base font-bold">{{ $user->name }}</p>
               <p class="text-sm text-gray-700">{{ $user->email }}</p>
               <p class="text-sm text-yellow-600 font-semibold">Required Hours: {{ $user->hour ?? 8 }}</p>
-              <a href="{{ route('users.history', $user->id) }}"
-                class="mt-2 inline-block bg-blue-700 hover:bg-blue-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
-                View History
-              </a>
+              <div class="flex gap-2 mt-2">
+                <a href="{{ route('users.history', $user->id) }}"
+                  class="inline-block bg-blue-700 hover:bg-blue-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
+                  View History
+                </a>
+                <button data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" data-open-modal="download-modal-form"
+                  class="inline-block bg-green-700 hover:bg-green-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
+                  Download PDF
+                </button>
+              </div>
             </div>
             @empty
             <p class="text-center text-gray-400">No users found.</p>
@@ -226,10 +232,16 @@
                   <td class="px-4 py-2">{{ $user->email }}</td>
                   <td class="px-4 py-2 text-yellow-600 font-semibold">{{ $user->hour ?? 8 }}</td>
                   <td class="px-4 py-2 text-center">
-                    <a href="{{ route('users.history', $user->id) }}"
-                      class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-1 rounded-full text-xs font-semibold transition">
-                      View History
-                    </a>
+                    <div class="flex gap-2 justify-center">
+                      <a href="{{ route('users.history', $user->id) }}"
+                        class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-1 rounded-full text-xs font-semibold transition">
+                        View History
+                      </a>
+                      <button data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" data-open-modal="download-modal-form"
+                        class="bg-green-700 hover:bg-green-900 text-white px-4 py-1 rounded-full text-xs font-semibold transition">
+                        Download PDF
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 @empty
@@ -242,6 +254,113 @@
           </div>
 
     </main>
+
+    <!-- Date Range Selection Modal -->
+    <div id="download-modal-form" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/60" data-close-modal></div>
+        <div role="dialog" aria-modal="true" class="relative mx-auto my-10 max-w-[640px] w-[92%] bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+            <button type="button" class="absolute top-3 right-3 p-2 rounded-full bg-slate-700 text-blue-300 shadow hover:bg-slate-600" data-close-modal aria-label="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+            <div class="p-6">
+                <h1 class="text-center text-3xl md:text-4xl font-extrabold text-blue-300 mb-6">Select Date Range</h1>
+                <p class="text-center text-slate-300 mb-6">Choose the period for PDF generation</p>
+                
+                <form id="downloadForm" method="GET" action="" class="space-y-5">
+                    <div>
+                        <label class="block font-semibold mb-1 text-blue-300" for="start_date">Start Date</label>
+                        <input class="w-full px-4 py-3 border border-slate-600 bg-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 transition text-white" 
+                               id="start_date" name="start_date" type="date" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block font-semibold mb-1 text-blue-300" for="end_date">End Date</label>
+                        <input class="w-full px-4 py-3 border border-slate-600 bg-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 transition text-white" 
+                               id="end_date" name="end_date" type="date" required>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" data-close-modal
+                            class="flex-1 px-5 py-3 rounded-full bg-slate-600 text-slate-200 font-bold shadow-lg hover:bg-slate-500 transition text-lg">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-5 py-3 rounded-full bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 transition text-lg">
+                            Download PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Open modal
+        document.querySelectorAll('[data-open-modal]').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var modalId = btn.getAttribute('data-open-modal');
+            var modal = document.getElementById(modalId);
+            if (modal) {
+              modal.classList.remove('hidden');
+              document.body.classList.add('overflow-hidden');
+              
+              // Set the form action URL and default dates
+              var userId = btn.getAttribute('data-user-id');
+              var userName = btn.getAttribute('data-user-name');
+              
+              // Set the form action URL
+              document.getElementById('downloadForm').action = `/users/${userId}/history/pdf`;
+              
+              // Set default dates (current month)
+              var today = new Date();
+              var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+              var lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+              
+              document.getElementById('start_date').value = firstDay.toISOString().split('T')[0];
+              document.getElementById('end_date').value = lastDay.toISOString().split('T')[0];
+            }
+          });
+        });
+        
+        // Close modal
+        document.querySelectorAll('[id$="-modal-form"]').forEach(function(modal) {
+          modal.querySelectorAll('[data-close-modal]').forEach(function(el) {
+            el.addEventListener('click', function() {
+              modal.classList.add('hidden');
+              document.body.classList.remove('overflow-hidden');
+            });
+          });
+          document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+              modal.classList.add('hidden');
+              document.body.classList.remove('overflow-hidden');
+            }
+          });
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('download-modal-form').addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+          }
+        });
+
+        // Auto-close modal after form submission
+        document.getElementById('downloadForm').addEventListener('submit', function(e) {
+          // Don't prevent default - let the form submit normally
+          // Close the modal after a short delay to allow the download to start
+          setTimeout(function() {
+            document.getElementById('download-modal-form').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+          }, 100);
+        });
+      });
+    </script>
 
 </body>
 

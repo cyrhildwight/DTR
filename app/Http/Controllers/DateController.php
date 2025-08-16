@@ -7,14 +7,15 @@ use App\Models\TimeLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 date_default_timezone_set('Asia/Manila');
 
 class DateController extends Controller
 {
-    protected $user;
+    protected User $user;
 
-    protected $log;
+    protected ?Date $log;
 
     public function __construct()
     {
@@ -151,6 +152,72 @@ class DateController extends Controller
         $user->remaining_hours = $remainingHours;
 
         return view('user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours'));
+    }
+
+    public function downloadHistoryPdf()
+    {
+        try {
+            $user = $this->user;
+            $dtrs = $user->dates()
+                ->orderByDesc('time_in')
+                ->get();
+
+            $totalHoursWorked = 0;
+            foreach ($dtrs as $dtr) {
+                $totalHoursWorked += $dtr->diffInHours();
+            }
+
+            $requiredHours = $user->hour ?? 8;
+            $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
+
+            $pdf = PDF::loadView('pdf.history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours', 'remainingHours'));
+            
+            return $pdf->download($user->name . '_DTR_History_' . now()->format('Y-m-d') . '.pdf');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadUserHistoryPdf($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            
+            // Get date range from request
+            $startDate = request('start_date');
+            $endDate = request('end_date');
+            
+            // Build query for DTR records
+            $query = $user->dates();
+            
+            // Apply date filters if provided
+            if ($startDate && $endDate) {
+                $query->whereBetween('time_in', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            }
+            
+            $dtrs = $query->orderByDesc('time_in')->get();
+
+            $totalHoursWorked = 0;
+            foreach ($dtrs as $dtr) {
+                $totalHoursWorked += $dtr->diffInHours();
+            }
+
+            $requiredHours = $user->hour ?? 8;
+            $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
+
+            $pdf = PDF::loadView('pdf.user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours', 'remainingHours'));
+            
+            // Generate filename with date range if specified
+            $filename = $user->name . '_DTR_History';
+            if ($startDate && $endDate) {
+                $filename .= '_' . $startDate . '_to_' . $endDate;
+            }
+            $filename .= '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
     }
 }
 

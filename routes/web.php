@@ -24,8 +24,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/timeout', [DateController::class, 'timeOut'])->name('dtr.timeout');
     Route::post('/logout', [AuthController::class, 'getLogout'])->name('logout');
     Route::get('/history', [DateController::class, 'history'])->name('history');
+    Route::get('/history/pdf', [DateController::class, 'downloadHistoryPdf'])->name('history.pdf');
     Route::get('/users', [DateController::class, 'users'])->name('users');
     Route::get('/users/{id}/history', [DateController::class, 'userHistory'])->name('users.history');
+    Route::get('/users/{id}/history/pdf', [DateController::class, 'downloadUserHistoryPdf'])->name('users.history.pdf');
     Route::get('/image', [MiscController::class, 'showImage'])->name('image.show');
     Route::get('/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('password.change');
     Route::post('/change-password', [ProfileController::class, 'changePassword'])->name('password.update');
