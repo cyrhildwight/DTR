@@ -208,57 +208,6 @@
 
 <body>
 
-    @php
-    $dailyRate = 100;
-    $requiredStart = \Carbon\Carbon::createFromTime(8, 0, 0);
-    $totalAllowance = 0;
-    $daysPresent = 0;
-
-    // Filter DTRs by date range if provided and ensure ascending order
-    $filteredDtrs = $dtrs;
-    if (request('start_date') && request('end_date')) {
-    $startDate = \Carbon\Carbon::parse(request('start_date'))->startOfDay();
-    $endDate = \Carbon\Carbon::parse(request('end_date'))->endOfDay();
-    $filteredDtrs = $dtrs->filter(function($dtr) use ($startDate, $endDate) {
-    $dtrDate = \Carbon\Carbon::parse($dtr->time_in);
-    return $dtrDate->between($startDate, $endDate);
-    })->sortBy('time_in'); // Sort by time_in in ascending order
-    } else {
-    $filteredDtrs = $dtrs->sortBy('time_in'); // Sort by time_in in ascending order
-    }
-
-    foreach ($filteredDtrs as $dtr) {
-    $hours = $dtr->diffInHours();
-    $pay = 0;
-    $lateDeduct = 0;
-    $lateHours = 0;
-    if ($hours > 0) {
-    $daysPresent++;
-    if ($hours >= 8) {
-    $pay = $dailyRate;
-    } elseif ($hours > 4) {
-    $pay = ($hours / 8) * $dailyRate;
-    } else {
-    $pay = $dailyRate / 2;
-    }
-    // Late calculation
-    if ($dtr->time_in) {
-    $in = \Carbon\Carbon::parse($dtr->time_in);
-    if ($in->gt($requiredStart)) {
-    $lateHours = $in->diffInMinutes($requiredStart) / 60;
-    if ($lateHours >= 1) {
-    $lateDeduct = ($dailyRate / 8) * floor($lateHours);
-    $pay -= $lateDeduct;
-    }
-    }
-    }
-    $totalAllowance += $pay;
-    }
-    }
-    $daysWorked = $daysPresent;
-    $allowance = $totalAllowance;
-    @endphp
-
     {{-- DTR Page --}}
     <div class="page-1">
         <div class="header">
@@ -362,6 +311,7 @@
                         <th>Description</th>
                         <th>Quantity</th>
                         <th>Rate</th>
+                        <th>Late Deduction</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -370,12 +320,13 @@
                         <td>OJT Allowance</td>
                         <td>{{ $daysWorked }} Days</td>
                         <td>{{ number_format($dailyRate, 2) }}</td>
-                        <td>{{ number_format($allowance, 2) }}</td>
+                        <td>{{ number_format($totalOverallDeduction, 2) }}</td>
+                        <td>{{ number_format($totalAllowance, 2) }}</td>
                     </tr>
                 </tbody>
             </table>
             <div class="total-allowance">
-                Total Allowance: {{ number_format($allowance, 2) }}
+                Total Allowance: {{ number_format($totalAllowance, 2) }}
             </div>
         </div>
 
