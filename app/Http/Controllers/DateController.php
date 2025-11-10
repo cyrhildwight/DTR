@@ -173,15 +173,75 @@ class DateController extends Controller
 
             $dtrs = $query->orderByDesc('time_in')->get();
 
+            $filteredDtrs = $dtrs;
+            if ($startDate && $endDate) {
+                $filteredDtrs = $dtrs->filter(function($dtr) use ($startDate, $endDate) {
+                    $dtrDate = \Carbon\Carbon::parse($dtr->time_in);
+                    return $dtrDate->between(\Carbon\Carbon::parse($startDate)->startOfDay(), \Carbon\Carbon::parse($endDate)->endOfDay());
+                })->sortBy('time_in');
+            } else {
+                $filteredDtrs = $dtrs->sortBy('time_in');
+            }
+
             $totalHoursWorked = 0;
-            foreach ($dtrs as $dtr) {
+            foreach ($filteredDtrs as $dtr) {
                 $totalHoursWorked += $dtr->diffInHours();
             }
 
             $requiredHours = $user->hour ?? 8;
+            $dailyRate = 100; // This should ideally come from user settings or a config
+            $requiredStart = \Carbon\Carbon::createFromTime(8, 0, 0);
+
+            $totalAllowance = 0;
+            $totalLateTimeInDeduction = 0;
+            $daysPresent = 0;
+
+            foreach ($filteredDtrs as $dtr) {
+                $hours = $dtr->diffInHours();
+                $payForHours = 0; // Allowance based on hours worked, before late time-in deduction
+                $lateTimeInDeduct = 0; // Deduction specifically for late time-in
+
+                if ($hours > 0) {
+                    $daysPresent++;
+                    if ($hours >= 8) {
+                        $payForHours = $dailyRate;
+                    } elseif ($hours > 4) {
+                        $payForHours = ($hours / 8) * $dailyRate;
+                    } else {
+                        $payForHours = $dailyRate / 2;
+                    }
+
+                    // Calculate late time-in deduction
+                    if ($dtr->time_in) {
+                        $in = \Carbon\Carbon::parse($dtr->time_in);
+                        if ($in->gt($requiredStart)) {
+                            $lateMinutes = $in->diffInMinutes($requiredStart);
+                            $calculatedLateHours = 0;
+                            if ($lateMinutes > 0) {
+                                $fullHours = floor($lateMinutes / 60);
+                                $remainingMinutes = $lateMinutes % 60;
+                                $calculatedLateHours = $fullHours;
+                                if ($remainingMinutes >= 30) {
+                                    $calculatedLateHours += 1;
+                                }
+                            }
+                            if ($calculatedLateHours > 0) {
+                                $lateTimeInDeduct = ($dailyRate / 8) * $calculatedLateHours;
+                            }
+                        }
+                    }
+                    $totalAllowance += ($payForHours - $lateTimeInDeduct);
+                    $totalLateTimeInDeduction += $lateTimeInDeduct;
+                }
+            }
+
+            $totalOverallDeduction = ($daysPresent * $dailyRate) - $totalAllowance;
+
+            $daysWorked = $daysPresent;
+
             $remainingHours = round(max($requiredHours - $totalHoursWorked, 0), 2);
 
-            $pdf = PDF::loadView('pdf.user_history', compact('user', 'dtrs', 'totalHoursWorked', 'requiredHours', 'remainingHours'));
+            $pdf = PDF::loadView('pdf.user_history', compact('user', 'dtrs', 'filteredDtrs', 'totalHoursWorked', 'requiredHours', 'remainingHours', 'totalAllowance', 'totalOverallDeduction', 'dailyRate', 'daysWorked'));
 
             // Generate filename with date range if specified
             $filename = $user->name . '_DTR_History';
