@@ -3,51 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>{{ $user->name }} - DTR History</title>
+  <title>Edit Profile - DTR System</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    .glow-border {
-      position: relative;
-      border-radius: 1rem;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .glow-border::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      padding: 2px;
-      background: linear-gradient(90deg,
-          transparent,
-          #3b82f6,
-          #06b6d4,
-          #9333ea,
-          transparent);
-      border-radius: 1rem;
-      animation: glow-run 4s linear infinite;
-      z-index: -1;
-      mask: linear-gradient(#0000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask: linear-gradient(#0000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-    }
-
-    @keyframes glow-run {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  </style>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 text-white font-sans">
+<body class="bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 min-h-screen text-white font-sans">
+
   <div class="relative peer">
     <header class="fixed top-0 left-0 right-0 z-50 bg-black shadow-md border-b border-gray-800 w-full">
       <nav class="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
@@ -192,76 +154,70 @@
         </li>
       </ul>
     </div>
-    <main class="flex items-center justify-center min-h-screen px-4 pt-32 bg-gradient-to-br from-blue-950 via-gray-900 to-slate-900 text-white font-sans">
-      <div class="glow-border w-full max-w-4xl">
-        <div class="bg-slate-100/90 text-gray-900 rounded-2xl px-4 sm:px-6 lg:px-10 py-6 sm:py-10 shadow-2xl">
-
-          <h2 class="text-xl sm:text-2xl font-bold text-blue-600 mb-1 text-center tracking-wide leading-tight">
-            {{ $user->name }}'s DTR History
-          </h2>
-
-          <div class="text-center text-gray-600 mb-4 text-xs sm:text-sm font-medium break-words">
-            {{ $user->email }}
+    <main class="flex items-center justify-center min-h-screen px-4 pt-32">
+      <div class="glow-border w-full max-w-md">
+        <div class="bg-slate-100/90 text-gray-900 rounded-2xl px-8 py-10 shadow-2xl text-center">
+          <div class="flex flex-col items-center mb-6">
+            <img src="/pic/logo.png" alt="DTR Logo" class="w-20 h-20 mb-3 rounded-full" />
+            <h1 class="text-3xl font-extrabold text-blue-600 drop-shadow-md">Edit Profile</h1>
           </div>
 
-          <div class="mb-4 text-center text-xs sm:text-sm text-gray-700">
-            <span class="font-semibold">Total Hours Worked:</span>
-            <span class="font-bold text-green-600">
-              {{ number_format($totalHoursWorked, 2) }}
-            </span> hrs
-            <span class="mx-1 sm:mx-2">|</span>
-            <span class="font-semibold">Required Hours:</span>
-            <span class="font-bold text-yellow-600">{{ $requiredHours }}</span> hrs
-            <span class="mx-1 sm:mx-2">|</span>
-            <span class="font-semibold">Remaining:</span>
-            <span class="font-bold text-red-600">{{ $user->remaining_hours }}</span> hrs
+          @if(session('success'))
+          <div class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4 text-sm">
+            {{ session('success') }}
           </div>
+          @endif
+          @if(session('error'))
+          <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
+            {{ session('error') }}
+          </div>
+          @endif
 
-          <div class="overflow-x-auto rounded-lg shadow border border-gray-300">
-            <table class="min-w-full text-sm sm:text-base text-left text-gray-800">
-              <thead class="bg-blue-100 text-blue-700 text-xs sm:text-sm uppercase">
-                <tr>
-                  <th class="px-2 py-2 sm:px-4 sm:py-3">Date</th>
-                  <th class="px-2 py-2 sm:px-4 sm:py-3">Time In</th>
-                  <th class="px-2 py-2 sm:px-4 sm:py-3">Time Out</th>
-                  <th class="px-2 py-2 sm:px-4 sm:py-3">Hours Worked</th>
-                  <th class="px-2 py-2 sm:px-4 sm:py-3">Diff</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white">
-                @forelse($dtrs as $dtr)
-                <tr class="even:bg-blue-50 odd:bg-blue-100 hover:bg-blue-200 transition">
-                  <td class="px-2 py-2 sm:px-4 sm:py-2 font-medium">
-                    {{ $dtr->time('time_in')?->format('M d, Y') }}
-                  </td>
-                  <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
-                    {{ $dtr->time_in ? \Carbon\Carbon::parse($dtr->time_in)->format('h:i:s A') : '—' }}
-                  </td>
-                  <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
-                    {{ $dtr->time_out ? \Carbon\Carbon::parse($dtr->time_out)->format('h:i:s A') : '—' }}
-                  </td>
-                  <td class="px-2 py-2 sm:px-4 sm:py-2 text-green-700 font-semibold">
-                    {{ number_format($dtr->diffInHours(), 2) }} hrs
-                  </td>
-                  <td class="px-2 py-2 sm:px-4 sm:py-2 font-semibold">
-                    {{ round($requiredHours - $dtr->diffInHours(), 2) }}
-                  </td>
-                </tr>
-                @php
-                $requiredHours -= $dtr->diffInHours();
-                @endphp
-                @empty
-                <tr>
-                  <td colspan="5" class="text-center py-6 text-gray-400">No records found.</td>
-                </tr>
-                @endforelse
-              </tbody>
-            </table>
+          <form method="POST" action="{{ route('profile.update') }}">
+            @csrf
+            <div class="mb-4">
+              <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              @error('name')
+              <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div class="mb-4">
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              @error('email')
+              <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div class="mb-6">
+              <label for="employee_id" class="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+              <input type="text" id="employee_id" name="employee_id" value="{{ old('employee_id', $user->employee_id) }}" {{ $user->employee_id ? 'readonly' : 'required' }}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 {{ $user->employee_id ? 'bg-gray-100' : '' }}">
+              @if($user->employee_id)
+              <p class="text-gray-500 text-xs mt-1">Employee ID can only be set once.</p>
+              @endif
+              @error('employee_id')
+              <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
+              Update Profile
+            </button>
+          </form>
+
+          <div class="mt-4">
+            <a href="{{ route('home') }}" class="text-blue-600 hover:text-blue-800">Back to Home</a>
           </div>
         </div>
       </div>
     </main>
-
+  </div>
 </body>
 
 </html>

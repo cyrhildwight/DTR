@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DateController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MiscController;
 
 // Guest-only routes
 Route::middleware('guest')->group(function () {
@@ -28,9 +27,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users', [DateController::class, 'users'])->name('users');
     Route::get('/users/{id}/history', [DateController::class, 'userHistory'])->name('users.history');
     Route::get('/users/{id}/history/pdf', [DateController::class, 'downloadUserHistoryPdf'])->name('users.history.pdf');
-    Route::get('/image', [MiscController::class, 'showImage'])->name('image.show');
     Route::get('/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('password.change');
     Route::post('/change-password', [ProfileController::class, 'changePassword'])->name('password.update');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 

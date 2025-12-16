@@ -25,6 +25,7 @@ class User extends Authenticatable
         'hour',
         'remaining_hours',
         'hourly_rate',
+        'employee_id',
     ];
 
     /**

@@ -58,35 +58,23 @@ class DateController extends Controller
     {
         // condition para dili sigeg balik og time in
         if (!empty($this->log->time_in)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You have already timed in today.',
-            ]);
+            return redirect()->route('home')->with('error', 'You have already timed in today.');
         }
 
         $this->log = $this->user->dates()->firstOrCreate([
             'time_in' => now(),
-            'time_in_image' => request()->input('face_data', null),
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Time In recorded!',
-            'log' => $this->log,
-        ]);
+        return redirect()->route('home')->with('success', 'Time In recorded!');
     }
 
     public function timeOut()
     {
         if (!empty($this->log->time_out)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You have already timed out today.',
-            ]);
+            return redirect()->route('home')->with('error', 'You have already timed out today.');
         }
 
         $this->log->time_out = now();
-        $this->log->time_out_image = request()->input('face_data', null);
         $this->log->save();
 
         $requiredHours = $this->user->hour ?? 0;
@@ -111,11 +99,7 @@ class DateController extends Controller
             $this->user->save();
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Time Out recorded!',
-            'log' => $this->log,
-        ]);
+        return redirect()->route('home')->with('success', 'Time Out recorded!');
     }
 
 

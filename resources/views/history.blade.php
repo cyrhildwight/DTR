@@ -238,20 +238,10 @@
                     {{ $dtr->time('time_in')?->format('M d, Y') }}
                   </td>
                   <td class="px-4 py-2 font-semibold text-green-700 whitespace-nowrap">
-                    <div class="flex items-center gap-2">
-                      @if(!empty($dtr->time_in_image))
-                      <img src="{{ $dtr->time_in_image }}" alt="Time In Image" class="w-[50px] sm:w-[80px] cursor-pointer rounded" onclick="showImage('{{ $dtr->time_in_image }}')">
-                      @endif
-                      {{ $dtr->time_in ? \Carbon\Carbon::parse($dtr->time_in)->format('h:i:s A') : '—' }}
-                    </div>
+                    {{ $dtr->time_in ? \Carbon\Carbon::parse($dtr->time_in)->format('h:i:s A') : '—' }}
                   </td>
                   <td class="px-4 py-2 font-semibold text-red-700 whitespace-nowrap">
-                    <div class="flex items-center gap-2">
-                      @if(!empty($dtr->time_out_image))
-                      <img src="{{ $dtr->time_out_image }}" alt="Time Out Image" class="w-[50px] sm:w-[80px] cursor-pointer rounded" onclick="showImage('{{ $dtr->time_out_image }}')">
-                      @endif
-                      {{ $dtr->time_out ? \Carbon\Carbon::parse($dtr->time_out)->format('h:i:s A') : '—' }}
-                    </div>
+                    {{ $dtr->time_out ? \Carbon\Carbon::parse($dtr->time_out)->format('h:i:s A') : '—' }}
                   </td>
                 </tr>
                 @empty
@@ -265,52 +255,6 @@
         </div>
       </div>
     </main>
-
-    <!-- MODAL -->
-    <div id="image-modal-form" class="fixed inset-0 z-[60] hidden">
-      <div class="absolute inset-0 bg-black/60" data-close-modal></div>
-      <div role="dialog" aria-modal="true" class="relative mx-auto my-10 max-w-[1000px] w-[92%] bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <button type="button" class="absolute top-3 right-3 p-2 rounded-full bg-slate-700 text-blue-300 shadow hover:bg-slate-600" data-close-modal aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        <div class="p-6">
-          <div class="modal-content">
-            <img src="" id="image_placeholder" class="w-full h-auto rounded-lg shadow-lg" alt="Captured Image">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCRIPT -->
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // Close modal
-        document.querySelectorAll('[id$="-modal-form"]').forEach(function(modal) {
-          modal.querySelectorAll('[data-close-modal]').forEach(function(el) {
-            el.addEventListener('click', function() {
-              modal.classList.add('hidden');
-              document.body.classList.remove('overflow-hidden');
-            });
-          });
-          document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-              modal.classList.add('hidden');
-              document.body.classList.remove('overflow-hidden');
-            }
-          });
-        });
-      });
-
-      function showImage(src) {
-        const modal = document.getElementById('image-modal-form');
-        const imagePlaceholder = document.getElementById('image_placeholder');
-        imagePlaceholder.src = src;
-        modal.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-      }
-    </script>
   </div>
 </body>
 

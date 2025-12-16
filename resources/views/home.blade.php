@@ -6,8 +6,6 @@
   <title>DTR System</title>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <style>
     .glow-border {
       position: relative;
@@ -44,30 +42,6 @@
       100% {
         transform: rotate(360deg);
       }
-    }
-
-    #camera {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 4px solid #06b6d4;
-      box-shadow: 0 0 0 4px #fff;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #camera video,
-    #camera canvas {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-      object-position: center center !important;
-      border-radius: 50% !important;
-      background: #000 !important;
-      display: block;
     }
   </style>
 </head>
@@ -120,6 +94,16 @@
                   d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M12 12a4 4 0 100-8 4 4 0 000 8z" />
               </svg>
               Users
+            </a>
+          </li>
+
+          <li>
+            <a href="{{ route('profile.edit') }}"
+              class="flex items-center gap-2 text-white font-semibold uppercase px-5 py-2 rounded-full transition duration-200 hover:bg-purple-600 hover:text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profile
             </a>
           </li>
 
@@ -192,6 +176,15 @@
         </li>
 
         <li>
+          <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 hover:text-blue-600 uppercase">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Profile
+          </a>
+        </li>
+
+        <li>
           <a href="{{ route('password.change') }}" class="flex items-center gap-2 hover:text-blue-600 uppercase">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">
@@ -251,251 +244,84 @@
             <p><strong>Total Duration:</strong> {{ $todaysLog->diff() }}</p>
             @endif
           </div>
+          @endif
 
+          @if($user->employee_id)
+          {{-- Employee ID Input --}}
+          <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Enter your Employee ID to access Time In and Time Out:</p>
+            <input type="number" id="employee_id_input" placeholder="Employee ID"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div id="buttons" style="display: none;">
           {{-- If NOT timed out, show Break & Timeout buttons --}}
-          @if(empty($todaysLog->time_out))
+          @if($todaysLog && empty($todaysLog->time_out))
           @if(empty($todaysLog->break_out) || empty($todaysLog->break_in))
           <form method="POST" action="{{ route('dtr.break') }}" class="mb-2">
             @csrf
             <button type="submit"
               class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 rounded-lg">
-              Break {{ $todaysLog->break_in ? 'End' : 'Start' }}
+              {{ $todaysLog->break_in ? 'End' : 'Start' }} Break
             </button>
           </form>
           @endif
 
-          <input type="hidden" id="timeout_face_data" name="face_data">
-          <button type="button" onclick="timeOut()"
-            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
-            Time Out
-          </button>
-          @endif
+          <form method="POST" action="{{ route('dtr.timeout') }}">
+            @csrf
+            <button type="submit"
+              class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
+              Time Out
+            </button>
+          </form>
+          @elseif(!$todaysLog)
 
-          @else
           {{-- No Time In yet --}}
-          <input type="hidden" name="face_data" id="face_data">
-          <button type="button" onclick="timeIn()"
-            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
-            Time In
-          </button>
+          <form method="POST" action="{{ route('dtr.timein') }}">
+            @csrf
+            <button type="submit"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-3">
+              Time In
+            </button>
+          </form>
           @endif
-
-          {{-- Webcam Display for Face Capture --}}
-          <div class="mt-6">
-            <div style="position: relative; width: 240px; height: 240px; margin: 0 auto;">
-              <!-- Webcam feed (circular) -->
-              <div id="camera"
-                   style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 4px solid #06b6d4; box-shadow: 0 0 0 4px #fff;">
-              </div>
-              <!-- Optional: Add a subtle guide ring overlay if you want -->
-              <div
-                style="
-                  position: absolute;
-                  top: 0; left: 0; width: 100%; height: 100%;
-                  pointer-events: none;
-                  display: flex; align-items: center; justify-content: center;
-                ">
-                <div
-                  style="
-                    width: 220px; height: 220px;
-                    border: 2px dashed #06b6d4;
-                    border-radius: 50%;
-                    background: transparent;
-                  ">
-                </div>
-              </div>
-            </div>
-            <div class="text-center text-sm text-gray-400 mt-2">
-              Please align your face within the circle before timing in.
-            </div>
           </div>
+          @else
+          {{-- Employee ID Input --}}
+          <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Please enter your Employee ID to proceed:</p>
+            <form method="POST" action="{{ route('profile.update') }}">
+              @csrf
+              <input type="hidden" name="name" value="{{ $user->name }}">
+              <input type="hidden" name="email" value="{{ $user->email }}">
+              <div class="flex gap-2">
+                <input type="text" name="employee_id" placeholder="Employee ID" required
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+          @endif
         </div>
       </div>
 
 
     </main>
     <script>
-      let cameraReady = false;
-      let faceDetected = false;
-      let faceCentered = false;
-      let video;
+      document.addEventListener('DOMContentLoaded', function() {
+        const employeeIdInput = document.getElementById('employee_id_input');
+        const buttonsDiv = document.getElementById('buttons');
+        const correctId = {{ $user->employee_id }};
 
-      async function setupCameraAndFaceDetection() {
-        // Load face-api.js models
-        await faceapi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models');
-        // Attach webcam to a video element
-        Webcam.set({
-          width: 240,
-          height: 240,
-          image_format: 'jpeg',
-          jpeg_quality: 90
-        });
-        Webcam.attach('#camera');
-
-        // Wait for the webcam to be ready
-        setTimeout(() => {
-          video = document.querySelector('#camera video');
-          if (!video) {
-            alert('Camera not ready!');
-            return;
-          }
-          cameraReady = true;
-          checkFaceLoop();
-        }, 1000);
-      }
-
-      async function checkFaceLoop() {
-        if (!video) return;
-        const options = new faceapi.TinyFaceDetectorOptions();
-        setInterval(async () => {
-          if (!cameraReady) return;
-          const result = await faceapi.detectSingleFace(video, options);
-          if (result) {
-            faceDetected = true;
-            const { x, y, width, height } = result.box;
-
-            // Adjust for cropped video
-            const cropOffsetX = (video.videoWidth - 240) / 2;
-            const cropOffsetY = (video.videoHeight - 240) / 2;
-            const centerX = x + width / 2 - cropOffsetX;
-            const centerY = y + height / 2 - cropOffsetY;
-
-            // Circle parameters
-            const circleRadius = 110; // overlay diameter is 220px
-            const dist = Math.sqrt(Math.pow(centerX - 120, 2) + Math.pow(centerY - 120, 2));
-            const faceDiagonal = Math.sqrt(width * width + height * height) / 2;
-            const fitsInCircle = (dist + faceDiagonal) < (circleRadius + 20); // more forgiving
-            const sizeOk = width > 130 && width < 200 && height > 130 && height < 200;
-            console.log({centerX, centerY, dist, width, height, faceDiagonal, fitsInCircle, sizeOk});
-            faceCentered = fitsInCircle && sizeOk;
+        employeeIdInput.addEventListener('input', function() {
+          if (this.value == correctId) {
+            buttonsDiv.style.display = 'block';
           } else {
-            faceDetected = false;
-            faceCentered = false;
+            buttonsDiv.style.display = 'none';
           }
-          updateButtonState();
-        }, 500);
-      }
-
-      function updateButtonState() {
-        const timeInBtn = document.querySelector('button[onclick="timeIn()"]');
-        const timeOutBtn = document.querySelector('button[onclick="timeOut()"]');
-        const canTime = cameraReady && faceDetected && faceCentered;
-        if (timeInBtn) {
-          timeInBtn.disabled = !canTime;
-          timeInBtn.classList.toggle('opacity-50', !canTime);
-          timeInBtn.classList.toggle('cursor-not-allowed', !canTime);
-        }
-        if (timeOutBtn) {
-          timeOutBtn.disabled = !canTime;
-          timeOutBtn.classList.toggle('opacity-50', !canTime);
-          timeOutBtn.classList.toggle('cursor-not-allowed', !canTime);
-        }
-      }
-
-      function takeSnapshot() {
-        Webcam.snap(function(data_uri) {
-          document.getElementById('face_data').value = data_uri;
-          alert('Face captured!');
         });
-      }
-
-      function timeIn() {
-        if (!cameraReady || !faceDetected || !faceCentered) {
-          alert('Please center your face in the circle!');
-          return;
-        }
-        const input = document.getElementById('face_data');
-
-        if (!input || !Webcam) {
-          alert('Camera not ready!');
-          return;
-        }
-
-        Webcam.snap(function(data_uri) {
-          if (!data_uri) {
-            alert('Face capture failed!');
-            return;
-          }
-
-          input.value = data_uri;
-
-          fetch('/timein', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-              },
-              body: JSON.stringify({
-                face_data: data_uri
-              })
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.status === 'success') {
-                alert('Time in successful!');
-                window.location.reload();
-              } else {
-                alert('Error: ' + (data.message || 'Failed to time in.'));
-                Webcam.reset();
-                Webcam.attach('#camera');
-                input.value = '';
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert('An error occurred while processing your request.');
-            });
-        });
-      }
-
-      function timeOut() {
-        if (!cameraReady || !faceDetected || !faceCentered) {
-          alert('Please center your face in the circle!');
-          return;
-        }
-        const input = document.getElementById('timeout_face_data');
-
-        if (!input || !Webcam) {
-          alert('Camera not ready!');
-          return;
-        }
-
-        Webcam.snap(function(data_uri) {
-          if (!data_uri) {
-            alert('Face capture failed!');
-            return;
-          }
-
-          input.value = data_uri;
-
-          fetch('/timeout', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-              },
-              body: JSON.stringify({
-                face_data: data_uri
-              })
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.status === 'success') {
-                alert('Time out successful!');
-                window.location.reload();
-              } else {
-                alert('Error: ' + (data.message || 'Failed to time out.'));
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert('An error occurred while processing your request.');
-            });
-        });
-      }
-
-      // Start everything after DOM is loaded
-      document.addEventListener('DOMContentLoaded', setupCameraAndFaceDetection);
+      });
     </script>
     @if(!empty($todaysLog) && $todaysLog->time_in)
     <script>
